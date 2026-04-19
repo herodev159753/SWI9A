@@ -18,6 +18,7 @@ import './src/services/i18n';
 const Stack = createStackNavigator();
 
 const linking = {
+  prefixes: ['/'],
   config: {
     screens: {
       Home: '',

@@ -228,7 +228,7 @@ const HomeScreen = ({ navigation }) => {
                )}
             </TouchableOpacity>
 
-            {userRole === 'admin' && (
+            {(userRole === 'admin' || userRole === 'owner') && (
               <TouchableOpacity style={[styles.cartButton, { marginLeft: 10, backgroundColor: COLORS.secondary }]} onPress={() => navigation.navigate('AdminDashboard')}>
                  <MaterialCommunityIcons name="cog-outline" size={24} color={COLORS.white} />
               </TouchableOpacity>
