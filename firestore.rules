@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if the user is an admin
+    function isAdmin() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if the user is the owner of the document
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // User Profile Security (Sensitive Data: Phone, GPS)
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+      
+      // Ensure specific fields are only accessible by Owner/Admin
+      match /private/{document=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Check if the user is a driver
+    function isDriver() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'driver';
+    }
+
+    // Orders Security (Sensitive Data: precise location)
+    match /orders/{orderId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin() || (isDriver() && resource.data.driverId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || (isDriver() && resource.data.driverId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Financial Data (Admin/Owner Only)
+    match /financials/{document=**} {
+      allow read, write: if isAdmin(); // Assuming Admin/Owner role has full access
+    }
+
+    // Audit Logs (Write only by System/Admin, Read by Owner Only)
+    match /audit_logs/{logId} {
+      allow create: if request.auth != null; // Automated system logs
+      allow read: if isAdmin(); // Only Owners/Admins see logs
+      allow delete, update: if false; // Logs are immutable
+    }
+
+    match /products/{productId} {
+      allow read: if true; // Everyone can see products
+      allow write: if isAdmin();
+    }
+  }
+}
