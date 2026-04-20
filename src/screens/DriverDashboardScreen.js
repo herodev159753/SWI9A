@@ -222,12 +222,9 @@ const DriverDashboardScreen = ({ navigation }) => {
     </View>
   );
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
+  if (isLoading && orders.length === 0) {
+    // Only block if we truly have absolutely nothing and it's the very first millisecond,
+    // but honestly we can just let it render. Let's just return null for a split second or render the shell.
   }
 
   return (
