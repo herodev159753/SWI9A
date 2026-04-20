@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { COLORS, SIZES } from '../constants/theme';
 import { getSecurely, saveSecurely } from '../services/StorageService';
 import { changeLanguage } from '../services/i18n';
+import ProductTimer from '../components/ProductTimer';
 
 const { width } = Dimensions.get('window');
 
@@ -25,12 +26,30 @@ const HomeScreen = ({ navigation }) => {
 
   // Initial Seed Data
   const initialData = [
-    { id: '1', name: 'fresh_tomatoes', price: '45 MAD', oldPrice: '60 MAD', vendor: 'Ait Melloul Farm', discount: '25%', image: 'https://images.unsplash.com/photo-1546473427-e1ad66663f7a?w=400', category: '1', stock: 45 },
-    { id: '2', name: 'organic_spinach', price: '15 MAD', oldPrice: '20 MAD', vendor: 'Ourika Organic', discount: '25%', image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400', category: '1', stock: 12 },
-    { id: '3', name: 'handmade_tagine', price: '120 MAD', oldPrice: '150 MAD', vendor: 'Safi Potters', discount: '20%', image: 'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400', category: '4', stock: 3 },
-    { id: '4', name: 'berber_carpet', price: '850 MAD', oldPrice: '1200 MAD', vendor: 'Atlas Argan Co', discount: '30%', image: 'https://images.unsplash.com/photo-1579546673203-d168c87ed9d2?w=400', category: '4', stock: 1 },
-    { id: '5', name: 'pure_argan_oil', price: '180 MAD', oldPrice: '220 MAD', vendor: 'Souss Cooperatives', discount: '18%', image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400', category: '3', stock: 15 },
-    { id: '6', name: 'lipstick_matte', price: '80 MAD', oldPrice: '120 MAD', vendor: 'Beauty Market', discount: '33%', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400', category: '5', stock: 5 },
+    // Cat 1: Vegetables
+    { id: '1', name: 'fresh_tomatoes', price: '45 MAD', oldPrice: '60 MAD', vendor: 'Ait Melloul Farm', discount: '25%', image: 'https://images.unsplash.com/photo-1546473427-e1ad66663f7a?w=400', category: '1', stock: 45, unit: 'kg', names: { ar: 'طماطم طازجة', fr: 'Tomates Fraîches', en: 'Fresh Tomatoes' } },
+    { id: '2', name: 'organic_spinach', price: '15 MAD', oldPrice: '20 MAD', vendor: 'Ourika Organic', discount: '25%', image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400', category: '1', stock: 12, unit: 'kg', names: { ar: 'سبانخ عضوية', fr: 'Épinards Bio', en: 'Organic Spinach' } },
+    // Cat 2: Clothing
+    { id: '7', price: '150 MAD', vendor: 'Souk Textile', discount: '', image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400', category: '2', stock: 20, unit: 'piece', names: { ar: 'قميص قطني', fr: 'Chemise Coton', en: 'Cotton Shirt' } },
+    // Cat 3: Groceries
+    { id: '5', name: 'pure_argan_oil', price: '180 MAD', oldPrice: '220 MAD', vendor: 'Souss Cooperatives', discount: '18%', image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400', category: '3', stock: 15, unit: 'litre', names: { ar: 'زيت أركان أصلي', fr: "Huile d'Argan Pure", en: 'Pure Argan Oil' } },
+    // Cat 4: Crafts
+    { id: '3', name: 'handmade_tagine', price: '120 MAD', oldPrice: '150 MAD', vendor: 'Safi Potters', discount: '20%', image: 'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400', category: '4', stock: 3, unit: 'piece', names: { ar: 'طاجين تقليدي', fr: 'Tajine Artisanal', en: 'Handmade Tagine' } },
+    { id: '4', name: 'berber_carpet', price: '850 MAD', oldPrice: '1200 MAD', vendor: 'Atlas Argan Co', discount: '30%', image: 'https://images.unsplash.com/photo-1579546673203-d168c87ed9d2?w=400', category: '4', stock: 1, unit: 'piece', names: { ar: 'زربية أمازيغية', fr: 'Tapis Berbère', en: 'Berber Carpet' } },
+    // Cat 5: Makeup
+    { id: '6', name: 'lipstick_matte', price: '80 MAD', oldPrice: '120 MAD', vendor: 'Beauty Market', discount: '33%', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400', category: '5', stock: 5, unit: 'piece', names: { ar: 'أحمر شفاه مات', fr: 'Rouge à Lèvres Mat', en: 'Lipstick Matte' } },
+    // Cat 6: Cleaning
+    { id: '8', price: '25 MAD', vendor: 'CleanPro', discount: '', image: 'https://images.unsplash.com/photo-1585421514284-efb74c2b69ba?w=400', category: '6', stock: 60, unit: 'piece', names: { ar: 'منظف متعدد الأسطح', fr: 'Nettoyant Multi-surfaces', en: 'Multi-Surface Cleaner' } },
+    { id: '9', price: '18 MAD', vendor: 'CleanPro', discount: '', image: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=400', category: '6', stock: 40, unit: 'litre', names: { ar: 'ماء جافيل', fr: 'Eau de Javel', en: 'Bleach' } },
+    // Cat 7: Bio
+    { id: '10', price: '65 MAD', vendor: 'Bio Maroc', discount: '', image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400', category: '7', stock: 25, unit: 'kg', names: { ar: 'عسل طبيعي', fr: 'Miel Naturel', en: 'Natural Honey' } },
+    { id: '11', price: '45 MAD', vendor: 'Bio Maroc', discount: '', image: 'https://images.unsplash.com/photo-1515942661900-94b3d1972591?w=400', category: '7', stock: 30, unit: 'piece', names: { ar: 'صابون طبيعي', fr: 'Savon Naturel', en: 'Natural Soap' } },
+    // Cat 8: Home & DIY
+    { id: '12', price: '90 MAD', vendor: 'Maison Plus', discount: '', image: 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=400', category: '8', stock: 15, unit: 'piece', names: { ar: 'مصباح LED', fr: 'Ampoule LED', en: 'LED Bulb' } },
+    { id: '13', price: '120 MAD', vendor: 'Maison Plus', discount: '', image: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400', category: '8', stock: 8, unit: 'piece', names: { ar: 'صنبور مياه', fr: 'Robinet', en: 'Water Faucet' } },
+    // Cat 9: Ready Meals
+    { id: '14', price: '35 MAD', vendor: 'Chef Express', discount: '', image: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=400', category: '9', stock: 10, unit: 'piece', names: { ar: 'طاجين دجاج جاهز', fr: 'Tajine Poulet Prêt', en: 'Chicken Tagine Ready' } },
+    { id: '15', price: '28 MAD', vendor: 'Chef Express', discount: '', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400', category: '9', stock: 15, unit: 'piece', names: { ar: 'بيتزا جاهزة', fr: 'Pizza Prête', en: 'Ready Pizza' } },
   ];
 
   const [allProduce, setAllProduce] = useState(initialData);
@@ -128,6 +147,10 @@ const HomeScreen = ({ navigation }) => {
     { id: '3', title: t('groceries'), icon: 'basket', color: COLORS.accent },
     { id: '4', title: t('local_crafts'), icon: 'palette', color: '#8E44AD' },
     { id: '5', title: t('makeup'), icon: 'lipstick', color: '#E91E63' },
+    { id: '6', title: t('cleaning'), icon: 'spray', color: '#00ACC1' },
+    { id: '7', title: t('bio'), icon: 'leaf', color: '#66BB6A' },
+    { id: '8', title: t('home_diy'), icon: 'home-variant', color: '#8D6E63' },
+    { id: '9', title: t('ready_food'), icon: 'food-variant', color: '#FF7043' },
   ];
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -138,10 +161,42 @@ const HomeScreen = ({ navigation }) => {
       const invData = await getSecurely('products_v1');
       const role = await getSecurely('userRole');
       setUserRole(role);
+      
       if (invData) {
-        setAllProduce(JSON.parse(invData));
+        let products = JSON.parse(invData);
+        let changed = false;
+        
+        // Auto-merge: inject seed products that don't exist yet
+        const existingIds = new Set(products.map(p => p.id));
+        const newSeeds = initialData.filter(s => !existingIds.has(s.id));
+        if (newSeeds.length > 0) {
+          products = [...products, ...newSeeds];
+          changed = true;
+        }
+
+        // Auto-reset expired deals
+        const now = Date.now();
+        const updatedProducts = products.map(p => {
+          if (p.saleEndsAt && now > p.saleEndsAt) {
+            changed = true;
+            return {
+              ...p,
+              discount: '',
+              price: p.oldPrice || p.price,
+              oldPrice: null,
+              saleEndsAt: null
+            };
+          }
+          return p;
+        });
+
+        if (changed) {
+          await saveSecurely('products_v1', JSON.stringify(updatedProducts));
+          setAllProduce(updatedProducts);
+        } else {
+          setAllProduce(products);
+        }
       } else {
-        // Seed initial data
         await saveSecurely('products_v1', JSON.stringify(initialData));
       }
 
@@ -170,10 +225,13 @@ const HomeScreen = ({ navigation }) => {
       filtered = allProduce.filter(p => p.category === selectedCat);
     }
     if (searchQuery) {
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      filtered = filtered.filter(p => {
+        const name = p.names ? (p.names[i18n.language] || p.names['fr'] || p.name) : p.name;
+        return name.toLowerCase().includes(searchQuery.toLowerCase());
+      });
     }
     setFeaturedProduce(filtered);
-  }, [selectedCat, searchQuery, allProduce]);
+  }, [selectedCat, searchQuery, allProduce, i18n.language]);
 
   useEffect(() => {
     loadData();
@@ -294,22 +352,35 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Dynamic Featured Section */}
         <View style={styles.sectionContainer}>
           <View style={[styles.sectionHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Text style={styles.sectionTitle}>{t('hot_deals')}</Text>
             <TouchableOpacity onPress={() => handleCategorySelect('all')}><Text style={styles.seeAll}>{t('see_all')}</Text></TouchableOpacity>
           </View>
-          
+
           <Animated.View style={[styles.productsGrid, { flexDirection: isRTL ? 'row-reverse' : 'row', opacity: fadeAnimProducts, transform: [{ translateY: fadeAnimProducts.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] }]}>
             {featuredProduce.length > 0 ? featuredProduce.map((item) => (
               <View key={item.id} style={styles.productCard}>
-                <View style={[styles.discountBadge, isRTL ? { right: 10 } : { left: 10 }]}>
-                  <Text style={styles.discountText}>{item.discount}</Text>
-                </View>
+                {item.discount && item.discount !== '' && item.discount !== '0%' && (
+                  <View style={[styles.discountBadge, isRTL ? { right: 10 } : { left: 10 }]}>
+                    <Text style={styles.discountText}>{item.discount.replace(' OFF', '')} {t('discount_label')}</Text>
+                  </View>
+                )}
+                {item.saleEndsAt && (
+                   <View style={[styles.cardTimerOverlay, isRTL ? { left: 5 } : { right: 5 }]}>
+                      <ProductTimer endsAt={item.saleEndsAt} onExpire={loadData} />
+                   </View>
+                )}
                 <Image source={{ uri: item.image }} style={styles.productImage} />
                 <View style={styles.productInfo}>
-                  <Text style={[styles.productName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>{t(item.name)}</Text>
+                  <Text style={[styles.productName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                    {item.names ? (item.names[i18n.language] || item.names['fr'] || item.name) : t(item.name)}
+                  </Text>
+                  {item.unit && (
+                    <Text style={{ fontSize: 10, color: COLORS.textGray, textAlign: isRTL ? 'right' : 'left', marginBottom: 2 }}>
+                      {item.unit}
+                    </Text>
+                  )}
                   <Text style={[styles.vendorName, { textAlign: isRTL ? 'right' : 'left' }]}>{item.vendor}</Text>
                   <View style={[styles.priceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <Text style={styles.price}>{item.price}</Text>
@@ -330,7 +401,7 @@ const HomeScreen = ({ navigation }) => {
             )}
           </Animated.View>
         </View>
-        
+
         {/* Call to Action CTA */}
         <TouchableOpacity style={styles.ctaContainer} onPress={() => Linking.openURL(`https://wa.me/212654298825?text=${encodeURIComponent(t('support_message'))}`)}>
           <LinearGradient colors={COLORS.gradientFresh || ['#11998E', '#38EF7D']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={[styles.ctaGradient, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
@@ -417,7 +488,13 @@ const styles = StyleSheet.create({
   ctaGradient: { alignItems: 'center', padding: SIZES.medium },
   ctaTextWrap: { flex: 1 },
   ctaTitle: { color: COLORS.white, fontSize: 16, fontWeight: 'bold' },
-  ctaSub: { color: COLORS.white, fontSize: 12, opacity: 0.9 }
+  ctaSub: { color: COLORS.white, fontSize: 12, opacity: 0.9 },
+  
+  // Timer Styles
+  itemTimer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.danger, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWeight: 1, borderColor: '#FFF' },
+  itemTimerText: { color: '#FFF', fontSize: 12, fontWeight: '900', marginLeft: 4 },
+  cardTimerOverlay: { position: 'absolute', top: 10, zIndex: 12 },
+  timerExpired: { fontSize: 10, color: COLORS.danger, fontWeight: 'bold' }
 });
 
 export default HomeScreen;

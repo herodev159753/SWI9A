@@ -1,18 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator, Platform, Linking
+  TextInput, Alert, ActivityIndicator, Platform, Linking, useWindowDimensions
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import { getSecurely, saveSecurely, deleteSecurely } from '../services/StorageService';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 import { changeLanguage } from '../services/i18n';
 import { listenToOrders, updateOrderStatusAsync } from '../services/FirebaseService';
 import { logAdminAction } from '../services/AuditService';
 
 const DriverDashboardScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
+  const { logout } = useAuth();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 480;
   const isRTL = i18n.language === 'ar';
 
   const [driverName, setDriverName] = useState('');
@@ -120,15 +124,7 @@ const DriverDashboardScreen = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
-    await deleteSecurely('userToken');
-    await deleteSecurely('userRole');
-    await deleteSecurely('userName');
-    await deleteSecurely('userId');
-    if (Platform.OS === 'web') {
-      window.location.href = '/login';
-    } else {
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-    }
+    await logout();
   };
 
   const openGPS = (lat, lng) => {
@@ -178,7 +174,7 @@ const DriverDashboardScreen = ({ navigation }) => {
         📦 {(order.items || []).length} {t('items_count')} — {order.total || ''}
       </Text>
 
-      <View style={[styles.cardActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.cardActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }, isMobile && { flexDirection: 'column', alignItems: 'stretch' }]}>
         <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng)}>
           <MaterialCommunityIcons name="google-maps" size={16} color="#FFF" />
           <Text style={styles.gpsBtnText}>{t('gps_view')}</Text>
@@ -265,17 +261,17 @@ const DriverDashboardScreen = ({ navigation }) => {
       </View>
 
       {/* Stats Bar */}
-      <View style={[styles.statsBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+      <View style={[styles.statsBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }, isMobile && { flexDirection: 'column', gap: 12 }]}>
         <View style={styles.statItem}>
           <Text style={styles.statNum}>{availableOrders.length}</Text>
           <Text style={styles.statLabel}>{t('available')}</Text>
         </View>
-        <View style={[styles.statDivider]} />
+        {!isMobile && <View style={[styles.statDivider]} />}
         <View style={styles.statItem}>
           <Text style={[styles.statNum, { color: '#FF9800' }]}>{myActiveOrders.length}</Text>
           <Text style={styles.statLabel}>{t('in_progress')}</Text>
         </View>
-        <View style={[styles.statDivider]} />
+        {!isMobile && <View style={[styles.statDivider]} />}
         <View style={styles.statItem}>
           <Text style={[styles.statNum, { color: '#4CAF50' }]}>{myDoneOrders.filter(o => o.status === 'Completed').length}</Text>
           <Text style={styles.statLabel}>{t('delivered')}</Text>

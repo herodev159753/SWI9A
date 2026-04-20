@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { StatusBar, ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -12,7 +12,7 @@ import DriverDashboardScreen from './src/screens/DriverDashboardScreen';
 import FlashDealsScreen from './src/screens/FlashDealsScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { COLORS } from './src/constants/theme';
-import { getSecurely } from './src/services/StorageService';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import './src/services/i18n';
 
 const Stack = createStackNavigator();
@@ -24,41 +24,16 @@ const linking = {
       Home: '',
       Cart: 'cart',
       FlashDeals: 'flash',
-      Login: 'login',
       AdminDashboard: 'admin',
       DriverDashboard: 'driver',
     },
   },
 };
 
-export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+function RootNavigator() {
+  const { isAuthenticated, userRole, isMfaVerified, loading } = useAuth();
 
-  useEffect(() => {
-    checkToken();
-  }, []);
-
-  const checkToken = async () => {
-    try {
-      const token = await getSecurely('userToken');
-      const role = await getSecurely('userRole');
-      if (token) {
-        setIsAuthenticated(true);
-        setUserRole(role);
-      } else {
-        setIsAuthenticated(false);
-        setUserRole(null);
-      }
-    } catch (e) {
-      console.error('Auth Check Error:', e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -67,32 +42,38 @@ export default function App() {
   }
 
   return (
+    <NavigationContainer linking={linking}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.gray} />
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName="Home"
+      >
+        {/* Public Screens */}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Cart" component={CartScreen} />
+        <Stack.Screen name="FlashDeals" component={FlashDealsScreen} />
+        
+        {/* Strictly Protected Screens */}
+        <Stack.Screen 
+          name="AdminDashboard" 
+          component={isAuthenticated && (userRole === 'owner' || userRole === 'admin') && isMfaVerified ? AdminDashboardScreen : LoginScreen} 
+        />
+        <Stack.Screen 
+          name="DriverDashboard" 
+          component={isAuthenticated && userRole === 'driver' ? DriverDashboardScreen : LoginScreen} 
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
     <HelmetProvider>
       <SafeAreaProvider>
-        <NavigationContainer linking={linking}>
-          <StatusBar barStyle="dark-content" backgroundColor={COLORS.gray} />
-          <Stack.Navigator
-            screenOptions={{ headerShown: false }}
-            initialRouteName="Home"
-          >
-            {/* Public Screens */}
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Cart" component={CartScreen} />
-            <Stack.Screen name="FlashDeals" component={FlashDealsScreen} />
-            
-            <Stack.Screen name="Login" component={LoginScreen} />
-
-            {/* Strictly Protected Screens */}
-            <Stack.Screen 
-              name="AdminDashboard" 
-              component={isAuthenticated && (userRole === 'owner' || userRole === 'admin') ? AdminDashboardScreen : LoginScreen} 
-            />
-            <Stack.Screen 
-              name="DriverDashboard" 
-              component={isAuthenticated && userRole === 'driver' ? DriverDashboardScreen : LoginScreen} 
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
       </SafeAreaProvider>
     </HelmetProvider>
   );

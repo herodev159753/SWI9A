@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../services/i18n';
 import { COLORS, SIZES } from '../constants/theme';
 import { getSecurely, saveSecurely } from '../services/StorageService';
+import ProductTimer from '../components/ProductTimer';
 
 const FlashDealsScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -48,14 +49,43 @@ const FlashDealsScreen = ({ navigation }) => {
     return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
   };
 
-  const deals = [
-    { id: 'f1', name: 'Fresh Tomatoes', price: '40 MAD', oldPrice: '80 MAD', discount: '50%', image: 'https://images.unsplash.com/photo-1546473427-e1ad66663f7a?w=400' },
-    { id: 'f2', name: 'Organic Spinach', price: '20 MAD', oldPrice: '30 MAD', discount: '33%', image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400' },
-    { id: 'f3', name: 'Sweet Mangoes', price: '120 MAD', oldPrice: '150 MAD', discount: '20%', image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400' },
-    { id: 'f4', name: 'Cotton T-Shirt', price: '250 MAD', oldPrice: '500 MAD', discount: '50%', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400' },
-    { id: 'f5', name: 'Lipstick Set', price: '80 MAD', oldPrice: '160 MAD', discount: '50%', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400' },
-    { id: 'f6', name: 'Foundation', price: '120 MAD', oldPrice: '200 MAD', discount: '40%', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400' },
-  ];
+  const [deals, setDeals] = useState([]);
+
+  useEffect(() => {
+    const loadDeals = async () => {
+      const data = await getSecurely('products_v1');
+      if (data) {
+        let products = JSON.parse(data);
+        let changed = false;
+        const now = Date.now();
+
+        const updated = products.map(p => {
+          if (p.saleEndsAt && now > p.saleEndsAt) {
+            changed = true;
+            return {
+              ...p,
+              discount: '',
+              price: p.oldPrice || p.price,
+              oldPrice: null,
+              saleEndsAt: null
+            };
+          }
+          return p;
+        });
+
+        if (changed) {
+          await saveSecurely('products_v1', JSON.stringify(updated));
+          products = updated;
+        }
+
+        const flashDeals = products.filter(p => p.discount && p.discount.length > 0 && p.discount !== '0%');
+        setDeals(flashDeals);
+      }
+    };
+    loadDeals();
+    const interval = setInterval(loadDeals, 5000); // Polling for updates
+    return () => clearInterval(interval);
+  }, []);
 
   const addToCart = async (item) => {
     try {
@@ -120,14 +150,26 @@ const FlashDealsScreen = ({ navigation }) => {
           {deals.map(item => (
             <View key={item.id} style={styles.card}>
               <View style={[styles.badge, isRTL ? { right: 8 } : { left: 8 }]}>
-                <Text style={styles.badgeText}>-{item.discount}</Text>
+                <Text style={styles.badgeText}>-{item.discount.replace(' OFF', '')} {t('discount_label')}</Text>
               </View>
+              {item.saleEndsAt && (
+                <View style={[styles.cardTimerOverlay, isRTL ? { left: 5 } : { right: 5 }]}>
+                   <ProductTimer endsAt={item.saleEndsAt} onExpire={loadDeals} />
+                </View>
+              )}
               <Image source={{ uri: item.image }} style={styles.cardImage} />
               <View style={styles.cardInfo}>
-                <Text style={[styles.cardName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>{item.name}</Text>
+                <Text style={[styles.cardName, { textAlign: isRTL ? 'right' : 'left' }]} numberOfLines={1}>
+                  {item.names ? (item.names[i18n.language] || item.names['fr'] || item.name) : (t(item.name) || item.name)}
+                </Text>
+                {item.unit && (
+                  <Text style={{ fontSize: 10, color: '#888', marginBottom: 2, textAlign: isRTL ? 'right' : 'left' }}>
+                    {item.unit}
+                  </Text>
+                )}
                 <View style={[styles.priceRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                   <Text style={styles.price}>{item.price}</Text>
-                  <Text style={styles.oldPrice}>{item.oldPrice}</Text>
+                  {item.oldPrice && <Text style={styles.oldPrice}>{item.oldPrice}</Text>}
                 </View>
                 <TouchableOpacity style={styles.addBtn} onPress={() => addToCart(item)}>
                   <Text style={styles.addBtnText}>{t('add')}</Text>
@@ -168,8 +210,8 @@ const styles = StyleSheet.create({
   priceRow: { alignItems: 'center', marginBottom: 8 },
   price: { fontSize: 15, fontWeight: '900', color: COLORS.primary },
   oldPrice: { fontSize: 11, color: COLORS.textGray, textDecorationLine: 'line-through', marginHorizontal: 6 },
-  addBtn: { backgroundColor: COLORS.primary, paddingVertical: 8, borderRadius: SIZES.base, alignItems: 'center' },
   addBtnText: { color: COLORS.white, fontWeight: 'bold', fontSize: 12 },
+  cardTimerOverlay: { position: 'absolute', top: 5, zIndex: 12 },
 });
 
 export default FlashDealsScreen;

@@ -5,6 +5,7 @@ import { COLORS } from '../constants/theme';
 import { getSecurely, saveSecurely, deleteSecurely } from '../services/StorageService';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../services/i18n';
+import { useAuth } from '../context/AuthContext';
 
 const LoginScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
@@ -15,6 +16,7 @@ const LoginScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [mfaState, setMfaState] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
+  const [targetMfaCode, setTargetMfaCode] = useState('159753'); // Default for owner/fallback
   const [lockoutMsg, setLockoutMsg] = useState('');
 
   const languages = [
@@ -23,9 +25,18 @@ const LoginScreen = ({ navigation, route }) => {
     { code: 'en', label: 'EN' },
   ];
 
+  const { login, verifyMFA, isAuthenticated, userRole, isMfaVerified } = useAuth();
+
   useEffect(() => {
     checkLockoutStatus();
-  }, []);
+    // On web, if the path is /admin, default to French
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/admin')) {
+      changeLanguage('fr');
+    }
+    if (isAuthenticated && (userRole === 'admin' || userRole === 'owner') && !isMfaVerified) {
+      setMfaState(true);
+    }
+  }, [isAuthenticated, userRole, isMfaVerified]);
 
   const checkLockoutStatus = async () => {
     try {
@@ -81,12 +92,16 @@ const LoginScreen = ({ navigation, route }) => {
 
       // Admin Hero (Owner)
       if (trimmedUser === 'hero' && trimmedPass === 'Abdo@115') {
-        await saveSecurely('userToken', 'admin-hero-token');
-        await saveSecurely('userRole', 'owner');
-        await saveSecurely('userName', 'Hero Admin');
-        await saveSecurely('userId', 'hero_owner');
-        await saveSecurely('loginStrikes', '0');
-        setMfaState(true);
+        const success = await login({
+          token: 'admin-hero-token',
+          role: 'owner',
+          name: 'Hero Admin',
+          id: 'hero_owner'
+        });
+        if (success) {
+          setTargetMfaCode('159753'); // Hardcoded for owner Hero
+          setMfaState(true);
+        }
         setLoading(false);
         return;
       }
@@ -98,27 +113,29 @@ const LoginScreen = ({ navigation, route }) => {
       );
 
       if (foundUser) {
-        await saveSecurely('userToken', 'token-' + foundUser.id);
-        await saveSecurely('userRole', foundUser.role);
-        await saveSecurely('userName', foundUser.name);
-        await saveSecurely('userId', foundUser.id);
-        await saveSecurely('loginStrikes', '0');
+        const success = await login({
+          token: 'token-' + foundUser.id,
+          role: foundUser.role,
+          name: foundUser.name,
+          id: foundUser.id
+        });
 
-        if (foundUser.role === 'admin' || foundUser.role === 'owner') {
-          if (Platform.OS === 'web') window.location.href = '/admin';
-          else navigation.reset({ index: 0, routes: [{ name: 'AdminDashboard' }] });
-        } else if (foundUser.role === 'driver') {
-          if (Platform.OS === 'web') window.location.href = '/driver';
-          else navigation.reset({ index: 0, routes: [{ name: 'DriverDashboard' }] });
-        } else {
-          if (Platform.OS === 'web') window.location.href = '/';
-          else navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+        if (success) {
+          if (foundUser.role === 'admin' || foundUser.role === 'owner') {
+            setTargetMfaCode(foundUser.mfaCode || '159753');
+            setMfaState(true);
+          } else if (foundUser.role === 'driver') {
+            navigation.reset({ index: 0, routes: [{ name: 'DriverDashboard' }] });
+          } else {
+            navigation.navigate('Home');
+          }
         }
         return;
       }
 
       await handleFailedAttempt();
     } catch (error) {
+      console.error('Login Error:', error);
       await handleFailedAttempt();
     } finally {
       setLoading(false);
@@ -126,9 +143,9 @@ const LoginScreen = ({ navigation, route }) => {
   };
 
   const handleMFAVerification = async () => {
-    if (mfaCode.trim() === '159753') {
-      if (Platform.OS === 'web') window.location.href = '/admin';
-      else navigation.reset({ index: 0, routes: [{ name: 'AdminDashboard' }] });
+    if (mfaCode.trim() === targetMfaCode) {
+      verifyMFA();
+      navigation.reset({ index: 0, routes: [{ name: 'AdminDashboard' }] });
     } else {
       Alert.alert(t('error'), t('invalid_mfa'));
     }

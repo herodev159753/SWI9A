@@ -18,15 +18,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/**
- * Register a new user with secure data storage.
- */
 export const registerUser = async (username, password, phone, name) => {
   if (firebaseConfig.apiKey.startsWith('YOUR_')) {
     console.log("Mocking registration success for demo.");
     return { user: { username, uid: 'mock-uid-' + Date.now(), getIdToken: () => Promise.resolve('mock-token') } };
   }
   try {
+    const email = `${username.toLowerCase()}@swi9a.com`;
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
@@ -58,6 +56,7 @@ export const loginUser = async (username, password) => {
     console.log("Mocking login success for demo.");
     return { user: { username, uid: 'mock-uid', getIdToken: () => Promise.resolve('mock-token') } };
   }
+  const email = `${username.toLowerCase()}@swi9a.com`;
   return await signInWithEmailAndPassword(auth, email, password);
 };
 
