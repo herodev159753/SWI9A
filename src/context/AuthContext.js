@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { getSecurely, saveSecurely, deleteSecurely } from '../services/StorageService';
 import { changeLanguage } from '../services/i18n';
 
@@ -12,9 +12,37 @@ export const AuthProvider = ({ children }) => {
   const [isMfaVerified, setIsMfaVerified] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Inactivity Timeout Settings (10 minutes)
+  const INACTIVITY_TIMEOUT = 10 * 60 * 1000; 
+  const lastActivityRef = useRef(Date.now());
+  const timerRef = useRef(null);
+
   useEffect(() => {
     loadAuthState();
+    return () => clearInterval(timerRef.current);
   }, []);
+
+  const updateActivity = () => {
+    lastActivityRef.current = Date.now();
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      updateActivity();
+      timerRef.current = setInterval(() => {
+        const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+        if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+          console.log('User inactive for 10 minutes, logging out...');
+          logout();
+        }
+      }, 60000); // Check every minute
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isAuthenticated]);
 
   const loadAuthState = async () => {
     try {
@@ -27,6 +55,7 @@ export const AuthProvider = ({ children }) => {
         setUserRole(role);
         setUserToken(token);
         setUserName(name);
+        updateActivity();
       }
     } catch (e) {
       console.error('Failed to load auth state:', e);
@@ -58,6 +87,7 @@ export const AuthProvider = ({ children }) => {
         await changeLanguage('fr');
       }
 
+      updateActivity();
       return true;
     } catch (e) {
       console.error('Login failed:', e);
@@ -87,6 +117,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyMFA = () => {
     setIsMfaVerified(true);
+    updateActivity();
   };
 
   return (
@@ -99,7 +130,8 @@ export const AuthProvider = ({ children }) => {
       loading, 
       login, 
       logout,
-      verifyMFA
+      verifyMFA,
+      updateActivity
     }}>
       {children}
     </AuthContext.Provider>

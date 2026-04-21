@@ -53,11 +53,27 @@ export const registerUser = async (username, password, phone, name) => {
  */
 export const loginUser = async (username, password) => {
   if (firebaseConfig.apiKey.startsWith('YOUR_')) {
-    console.log("Mocking login success for demo.");
-    return { user: { username, uid: 'mock-uid', getIdToken: () => Promise.resolve('mock-token') } };
+    console.log("Mocking login success for demo. Please add real Firebase keys.");
+    // We still return mock so the app doesn't crash completely, but real usage requires keys
+    return { user: { email: username + '@swi9a.com', uid: 'mock-uid', getIdToken: () => Promise.resolve('mock-token') } };
   }
   const email = `${username.toLowerCase()}@swi9a.com`;
   return await signInWithEmailAndPassword(auth, email, password);
+};
+
+/**
+ * Get user profile from Firestore (Role, Name, etc.)
+ */
+export const getUserProfile = async (uid) => {
+  if (firebaseConfig.apiKey.startsWith('YOUR_')) {
+    return { role: 'admin', name: 'Mock Admin', mfaCode: '159753' };
+  }
+  const docRef = doc(db, 'users', uid);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() };
+  }
+  return null;
 };
 
 /**
