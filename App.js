@@ -31,7 +31,7 @@ const linking = {
 };
 
 function RootNavigator() {
-  const { isAuthenticated, userRole, isMfaVerified, loading, updateActivity } = useAuth();
+  const { isAuthenticated, userRole, isMfaVerified, loading } = useAuth();
 
   if (loading) {
     return (
@@ -41,38 +41,29 @@ function RootNavigator() {
     );
   }
 
-  const handleUserActivity = () => {
-    if (isAuthenticated && updateActivity) {
-      updateActivity();
-    }
-    return false; // Don't block the touch
-  };
-
   return (
-    <View style={{ flex: 1 }} onStartShouldSetResponderCapture={handleUserActivity}>
-      <NavigationContainer linking={linking}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.gray} />
-        <Stack.Navigator
-          screenOptions={{ headerShown: false }}
-          initialRouteName="Home"
-        >
-          {/* Public Screens */}
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Cart" component={CartScreen} />
-          <Stack.Screen name="FlashDeals" component={FlashDealsScreen} />
-          
-          {/* Strictly Protected Screens */}
-          <Stack.Screen 
-            name="AdminDashboard" 
-            component={isAuthenticated && (userRole === 'owner' || userRole === 'admin') && isMfaVerified ? AdminDashboardScreen : LoginScreen} 
-          />
-          <Stack.Screen 
-            name="DriverDashboard" 
-            component={isAuthenticated && userRole === 'driver' ? DriverDashboardScreen : LoginScreen} 
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </View>
+    <NavigationContainer linking={linking}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.gray} />
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName="Home"
+      >
+        {/* Public Screens */}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Cart" component={CartScreen} />
+        <Stack.Screen name="FlashDeals" component={FlashDealsScreen} />
+        
+        {/* Strictly Protected Screens */}
+        <Stack.Screen 
+          name="AdminDashboard" 
+          component={isAuthenticated && (userRole === 'owner' || userRole === 'admin') && isMfaVerified ? AdminDashboardScreen : LoginScreen} 
+        />
+        <Stack.Screen 
+          name="DriverDashboard" 
+          component={isAuthenticated && userRole === 'driver' ? DriverDashboardScreen : LoginScreen} 
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

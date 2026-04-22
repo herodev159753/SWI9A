@@ -6,7 +6,6 @@ import { getSecurely, saveSecurely, deleteSecurely } from '../services/StorageSe
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../services/i18n';
 import { useAuth } from '../context/AuthContext';
-import { loginUser, getUserProfile } from '../services/FirebaseService';
 
 const LoginScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
@@ -71,6 +70,13 @@ const LoginScreen = ({ navigation, route }) => {
     }
   };
 
+  const getUsers = async () => {
+    try {
+      const data = await getSecurely('app_users');
+      return data ? JSON.parse(data) : [];
+    } catch { return []; }
+  };
+
   const handleAuth = async () => {
     if (await checkLockoutStatus()) return;
 
@@ -84,7 +90,7 @@ const LoginScreen = ({ navigation, route }) => {
       const trimmedUser = username.trim().toLowerCase();
       const trimmedPass = password.trim();
 
-      // Admin Hero (Owner) - Hardcoded fallback
+      // Admin Hero (Owner)
       if (trimmedUser === 'hero' && trimmedPass === 'Abdo@115') {
         const success = await login({
           token: 'admin-hero-token',
@@ -100,41 +106,34 @@ const LoginScreen = ({ navigation, route }) => {
         return;
       }
 
-      // Authenticate with Firebase
-      const userCredential = await loginUser(trimmedUser, trimmedPass);
-      const user = userCredential.user;
-      
-      // Fetch user role and info from Firestore
-      const userProfile = await getUserProfile(user.uid);
-      
-      if (!userProfile) {
-        Alert.alert(t('error'), 'No profile found for this user.');
-        setLoading(false);
+      // Check registered users
+      const users = await getUsers();
+      const foundUser = users.find(u => 
+        (u.username && u.username.toLowerCase() === trimmedUser) && u.password === trimmedPass
+      );
+
+      if (foundUser) {
+        const success = await login({
+          token: 'token-' + foundUser.id,
+          role: foundUser.role,
+          name: foundUser.name,
+          id: foundUser.id
+        });
+
+        if (success) {
+          if (foundUser.role === 'admin' || foundUser.role === 'owner') {
+            setTargetMfaCode(foundUser.mfaCode || '159753');
+            setMfaState(true);
+          } else if (foundUser.role === 'driver') {
+            navigation.reset({ index: 0, routes: [{ name: 'DriverDashboard' }] });
+          } else {
+            navigation.navigate('Home');
+          }
+        }
         return;
       }
 
-      const token = await user.getIdToken();
-      const role = userProfile.role || 'user';
-      const name = userProfile.name || trimmedUser;
-
-      const success = await login({
-        token: token,
-        role: role,
-        name: name,
-        id: user.uid
-      });
-
-      if (success) {
-        if (role === 'admin' || role === 'owner') {
-          setTargetMfaCode(userProfile.mfaCode || '159753');
-          setMfaState(true);
-        } else if (role === 'driver') {
-          navigation.reset({ index: 0, routes: [{ name: 'DriverDashboard' }] });
-        } else {
-          navigation.navigate('Home');
-        }
-      }
-      return;
+      await handleFailedAttempt();
     } catch (error) {
       console.error('Login Error:', error);
       await handleFailedAttempt();
