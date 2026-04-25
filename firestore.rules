@@ -51,5 +51,13 @@ service cloud.firestore {
       allow read: if true; // Everyone can see products
       allow write: if isAdmin();
     }
+
+    // App Users (Admin/Driver accounts for login)
+    // Read: allowed for everyone (needed for login verification from any device)
+    // Write: only admins can create/update/delete user accounts
+    match /app_users/{userId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
   }
 }

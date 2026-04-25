@@ -6,6 +6,7 @@ import { getSecurely, saveSecurely, deleteSecurely } from '../services/StorageSe
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../services/i18n';
 import { useAuth } from '../context/AuthContext';
+import { getAppUsers } from '../services/FirebaseService';
 
 const LoginScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
@@ -72,8 +73,7 @@ const LoginScreen = ({ navigation, route }) => {
 
   const getUsers = async () => {
     try {
-      const data = await getSecurely('app_users');
-      return data ? JSON.parse(data) : [];
+      return await getAppUsers();
     } catch { return []; }
   };
 

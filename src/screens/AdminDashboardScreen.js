@@ -5,7 +5,7 @@ import { COLORS, SIZES } from '../constants/theme';
 import { getSecurely, saveSecurely } from '../services/StorageService';
 import { logAdminAction } from '../services/AuditService';
 import { changeLanguage } from '../services/i18n';
-import { registerUser, listenToOrders, assignOrderDriverAsync, updateOrderStatusAsync } from '../services/FirebaseService';
+import { registerUser, listenToOrders, assignOrderDriverAsync, updateOrderStatusAsync, getAppUsers, addAppUser, updateAppUser, deleteAppUser } from '../services/FirebaseService';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ProductTimer from '../components/ProductTimer';
@@ -99,16 +99,23 @@ const AdminDashboardScreen = () => {
   };
 
   const loadUsers = async () => {
-    const data = await getSecurely('app_users');
-    if (data) setUsersList(JSON.parse(data));
+    try {
+      const users = await getAppUsers();
+      setUsersList(users);
+    } catch (e) {
+      console.error('loadUsers Error:', e);
+    }
   };
 
   const deleteUser = async (userId) => {
-    const updated = usersList.filter(u => u.id !== userId);
-    setUsersList(updated);
-    await saveSecurely('app_users', JSON.stringify(updated));
-    await handleAdminAction('DELETE_USER', { userId });
-    Alert.alert(t('success'), t('user_deleted') || 'User deleted');
+    try {
+      await deleteAppUser(userId);
+      setUsersList(prev => prev.filter(u => u.id !== userId));
+      await handleAdminAction('DELETE_USER', { userId });
+      Alert.alert(t('success'), t('user_deleted') || 'User deleted');
+    } catch (e) {
+      Alert.alert(t('error'), e.message);
+    }
   };
 
   const startEditUser = (user) => {
@@ -124,21 +131,26 @@ const AdminDashboardScreen = () => {
   const handleUpdateUser = async () => {
     if (!editName) return Alert.alert(t('error'), t('fill_fields'));
     
-    const updated = usersList.map(u => u.id === editingUser.id ? {
-      ...u,
-      name: editName,
-      email: editEmail,
-      phone: editPhone,
-      role: editRole,
-      password: editPassword ? editPassword : u.password,
-      mfaCode: editMfaCode || u.mfaCode || '159753'
-    } : u);
-    
-    setUsersList(updated);
-    await saveSecurely('app_users', JSON.stringify(updated));
-    await handleAdminAction('EDIT_USER', { userId: editingUser.id, name: editName });
-    Alert.alert(t('success'), t('update_success') || 'Updated ✓');
-    setEditingUser(null);
+    try {
+      const updatedData = {
+        name: editName,
+        email: editEmail,
+        phone: editPhone,
+        role: editRole,
+        mfaCode: editMfaCode || '159753'
+      };
+      if (editPassword) {
+        updatedData.password = editPassword;
+      }
+      
+      await updateAppUser(editingUser.id, updatedData);
+      setUsersList(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...updatedData } : u));
+      await handleAdminAction('EDIT_USER', { userId: editingUser.id, name: editName });
+      Alert.alert(t('success'), t('update_success') || 'Updated ✓');
+      setEditingUser(null);
+    } catch (e) {
+      Alert.alert(t('error'), e.message);
+    }
   };
 
   useEffect(() => {
@@ -347,9 +359,9 @@ const AdminDashboardScreen = () => {
         role: newUserRole,
         createdAt: new Date().toISOString()
       };
-      const updated = [...usersList, newUser];
-      setUsersList(updated);
-      await saveSecurely('app_users', JSON.stringify(updated));
+      
+      await addAppUser(newUser);
+      setUsersList(prev => [...prev, newUser]);
       await handleAdminAction('ADD_USER', { username: newUserUsername, role: newUserRole });
       Alert.alert(t('success'), t('user_added_success'));
       setNewUserUsername('');
@@ -357,6 +369,7 @@ const AdminDashboardScreen = () => {
       setNewUserPhone('');
       setNewUserPassword('');
       setNewUserName('');
+      setNewUserMfaCode('159753');
       setNewUserRole('admin');
     } catch (e) {
       Alert.alert(t('error'), e.message);

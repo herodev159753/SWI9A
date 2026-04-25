@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { sanitizeInput } from '../utils/validation';
 
 // Firebase configuration (Placeholder)
@@ -75,7 +75,7 @@ export const placeOrder = async (userId, cartItems, location) => {
   });
 };
 
-import { collection, onSnapshot, deleteDoc, updateDoc } from 'firebase/firestore';
+import { onSnapshot } from 'firebase/firestore';
 
 export const listenToInventory = (callback) => {
   const q = collection(db, 'inventory');
@@ -117,6 +117,145 @@ export const updateOrderStatusAsync = async (orderId, newStatus) => {
   await updateDoc(doc(db, 'orders', orderId), {
     status: newStatus
   });
+};
+
+// ==========================================
+// APP USERS MANAGEMENT (Firestore-backed)
+// ==========================================
+
+const isFirebaseConfigured = () => !firebaseConfig.apiKey.startsWith('YOUR_');
+
+/**
+ * Get all app users from Firestore.
+ * Falls back to localStorage if Firebase is not configured.
+ */
+export const getAppUsers = async () => {
+  if (!isFirebaseConfigured()) {
+    // Fallback: read from localStorage
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const data = localStorage.getItem('app_users');
+        return data ? JSON.parse(data) : [];
+      }
+    } catch (e) { console.error('getAppUsers localStorage fallback error:', e); }
+    return [];
+  }
+  try {
+    const snapshot = await getDocs(collection(db, 'app_users'));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('getAppUsers Error:', error);
+    return [];
+  }
+};
+
+/**
+ * Add a new app user to Firestore.
+ */
+export const addAppUser = async (userData) => {
+  if (!isFirebaseConfigured()) {
+    // Fallback: save to localStorage
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const existing = localStorage.getItem('app_users');
+        const users = existing ? JSON.parse(existing) : [];
+        users.push(userData);
+        localStorage.setItem('app_users', JSON.stringify(users));
+        return userData;
+      }
+    } catch (e) { console.error('addAppUser localStorage fallback error:', e); }
+    return userData;
+  }
+  try {
+    const userId = userData.id || 'user_' + Date.now();
+    await setDoc(doc(db, 'app_users', userId), {
+      ...userData,
+      id: userId
+    });
+    return { ...userData, id: userId };
+  } catch (error) {
+    console.error('addAppUser Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing app user in Firestore.
+ */
+export const updateAppUser = async (userId, updatedData) => {
+  if (!isFirebaseConfigured()) {
+    // Fallback: update in localStorage
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const existing = localStorage.getItem('app_users');
+        const users = existing ? JSON.parse(existing) : [];
+        const updated = users.map(u => u.id === userId ? { ...u, ...updatedData } : u);
+        localStorage.setItem('app_users', JSON.stringify(updated));
+        return updated.find(u => u.id === userId);
+      }
+    } catch (e) { console.error('updateAppUser localStorage fallback error:', e); }
+    return null;
+  }
+  try {
+    await updateDoc(doc(db, 'app_users', userId), updatedData);
+    return { id: userId, ...updatedData };
+  } catch (error) {
+    console.error('updateAppUser Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an app user from Firestore.
+ */
+export const deleteAppUser = async (userId) => {
+  if (!isFirebaseConfigured()) {
+    // Fallback: remove from localStorage
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const existing = localStorage.getItem('app_users');
+        const users = existing ? JSON.parse(existing) : [];
+        const updated = users.filter(u => u.id !== userId);
+        localStorage.setItem('app_users', JSON.stringify(updated));
+        return true;
+      }
+    } catch (e) { console.error('deleteAppUser localStorage fallback error:', e); }
+    return false;
+  }
+  try {
+    await deleteDoc(doc(db, 'app_users', userId));
+    return true;
+  } catch (error) {
+    console.error('deleteAppUser Error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Find app user by username (for login verification).
+ */
+export const getAppUserByUsername = async (username) => {
+  if (!isFirebaseConfigured()) {
+    // Fallback: search in localStorage
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const data = localStorage.getItem('app_users');
+        const users = data ? JSON.parse(data) : [];
+        return users.find(u => u.username && u.username.toLowerCase() === username.toLowerCase()) || null;
+      }
+    } catch (e) { console.error('getAppUserByUsername localStorage fallback error:', e); }
+    return null;
+  }
+  try {
+    const q = query(collection(db, 'app_users'), where('username', '==', username.toLowerCase()));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  } catch (error) {
+    console.error('getAppUserByUsername Error:', error);
+    return null;
+  }
 };
 
 export { auth, db };
