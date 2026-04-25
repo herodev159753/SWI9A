@@ -67,26 +67,10 @@ const DriverDashboardScreen = ({ navigation }) => {
 
   const handleClaimOrder = async (orderId) => {
     try {
-      const { updateOrderStatusAsync: _ , assignOrderDriverAsync } = require('../services/FirebaseService');
-      // Update locally via mock
-      const users = orders.map(o => {
-        if (o.id === orderId) {
-          return { ...o, driverId, driver: driverName, status: 'Out for Delivery' };
-        }
-        return o;
-      });
-      setOrders(users);
-
-      // Persist to mock store
-      const stored = await getSecurely('mock_orders');
-      if (stored) {
-        const arr = JSON.parse(stored);
-        const updated = arr.map(o => o.id === orderId
-          ? { ...o, driverId, driver: driverName, status: 'Out for Delivery' }
-          : o
-        );
-        await saveSecurely('mock_orders', JSON.stringify(updated));
-      }
+      const { assignOrderDriverAsync } = require('../services/FirebaseService');
+      
+      // Update Firestore directly
+      await assignOrderDriverAsync(orderId, driverName, driverId);
 
       await logAdminAction(driverId, 'CLAIM_ORDER', { orderId, driver: driverName });
       Alert.alert(t('success'), t('order_claimed'));
