@@ -715,11 +715,11 @@ const AdminDashboardScreen = () => {
 
       {/* Users List */}
       <Text style={[styles.sectionLabel, { textAlign: isRTL ? 'right' : 'left', marginBottom: 10, marginTop: 5 }]}>
-        {t('users_management')} ({usersList.length})
+        {t('users_management')} ({usersList.filter(u => u.id !== 'hero_owner').length})
       </Text>
-      {usersList.length === 0 ? (
+      {usersList.filter(u => u.id !== 'hero_owner').length === 0 ? (
         <Text style={[styles.restrictedText, { color: COLORS.textGray, fontStyle: 'italic' }]}>{t('no_users_yet')}</Text>
-      ) : usersList.map(user => (
+      ) : usersList.filter(u => u.id !== 'hero_owner').map(user => (
         <View key={user.id} style={styles.userCard}>
           <View style={[{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', flex: 1 }]}>
             <View style={[styles.userAvatar, { backgroundColor: user.role === 'admin' ? COLORS.primary : (user.role === 'driver' ? '#FF9800' : '#9E9E9E') }]}>
