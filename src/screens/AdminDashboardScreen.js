@@ -5,7 +5,7 @@ import { COLORS, SIZES } from '../constants/theme';
 import { getSecurely, saveSecurely } from '../services/StorageService';
 import { logAdminAction } from '../services/AuditService';
 import { changeLanguage } from '../services/i18n';
-import { registerUser, listenToOrders, assignOrderDriverAsync, updateOrderStatusAsync, getAppUsers, addAppUser, updateAppUser, deleteAppUser } from '../services/FirebaseService';
+import { registerUser, listenToOrders, assignOrderDriverAsync, updateOrderStatusAsync, getAppUsers, addAppUser, updateAppUser, deleteAppUser, hashPassword } from '../services/FirebaseService';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ProductTimer from '../components/ProductTimer';
@@ -140,7 +140,7 @@ const AdminDashboardScreen = () => {
         mfaCode: editMfaCode || '159753'
       };
       if (editPassword) {
-        updatedData.password = editPassword;
+        updatedData.password = await hashPassword(editPassword);
       }
       
       await updateAppUser(editingUser.id, updatedData);
@@ -354,7 +354,7 @@ const AdminDashboardScreen = () => {
         username: newUserUsername.trim().toLowerCase(),
         email: newUserEmail.trim().toLowerCase(),
         phone: newUserPhone.trim(),
-        password: newUserPassword,
+        password: await hashPassword(newUserPassword),
         mfaCode: newUserMfaCode.trim() || '159753',
         role: newUserRole,
         createdAt: new Date().toISOString()

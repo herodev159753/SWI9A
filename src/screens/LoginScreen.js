@@ -6,7 +6,7 @@ import { getSecurely, saveSecurely, deleteSecurely } from '../services/StorageSe
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../services/i18n';
 import { useAuth } from '../context/AuthContext';
-import { getAppUsers } from '../services/FirebaseService';
+import { getAppUsers, verifyPassword, ensureOwnerAccount } from '../services/FirebaseService';
 
 const LoginScreen = ({ navigation, route }) => {
   const { t, i18n } = useTranslation();
@@ -37,6 +37,8 @@ const LoginScreen = ({ navigation, route }) => {
     if (isAuthenticated && (userRole === 'admin' || userRole === 'owner') && !isMfaVerified) {
       setMfaState(true);
     }
+    // Ensure owner account exists in Firestore on first load
+    ensureOwnerAccount();
   }, [isAuthenticated, userRole, isMfaVerified]);
 
   const checkLockoutStatus = async () => {
@@ -90,29 +92,20 @@ const LoginScreen = ({ navigation, route }) => {
       const trimmedUser = username.trim().toLowerCase();
       const trimmedPass = password.trim();
 
-      // Admin Hero (Owner)
-      if (trimmedUser === 'hero' && trimmedPass === 'Abdo@115') {
-        const success = await login({
-          token: 'admin-hero-token',
-          role: 'owner',
-          name: 'Hero Admin',
-          id: 'hero_owner'
-        });
-        if (success) {
-          setTargetMfaCode('159753'); // Hardcoded for owner Hero
-          setMfaState(true);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Check registered users
+      // Check all registered users (including owner) from Firestore
       const users = await getUsers();
       const foundUser = users.find(u => 
-        (u.username && u.username.toLowerCase() === trimmedUser) && u.password === trimmedPass
+        u.username && u.username.toLowerCase() === trimmedUser
       );
 
       if (foundUser) {
+        // Verify password using bcrypt
+        const isPasswordValid = await verifyPassword(trimmedPass, foundUser.password);
+        if (!isPasswordValid) {
+          await handleFailedAttempt();
+          return;
+        }
+
         const success = await login({
           token: 'token-' + foundUser.id,
           role: foundUser.role,

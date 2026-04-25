@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { sanitizeInput } from '../utils/validation';
+import bcrypt from 'bcryptjs';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -255,6 +256,54 @@ export const getAppUserByUsername = async (username) => {
   } catch (error) {
     console.error('getAppUserByUsername Error:', error);
     return null;
+  }
+};
+// ==========================================
+// PASSWORD HASHING (bcryptjs)
+// ==========================================
+
+const SALT_ROUNDS = 10;
+
+/**
+ * Hash a plaintext password.
+ */
+export const hashPassword = async (plainPassword) => {
+  return await bcrypt.hash(plainPassword, SALT_ROUNDS);
+};
+
+/**
+ * Compare a plaintext password with a hashed password.
+ */
+export const verifyPassword = async (plainPassword, hashedPassword) => {
+  return await bcrypt.compare(plainPassword, hashedPassword);
+};
+
+// ==========================================
+// OWNER ACCOUNT SEED (runs once)
+// ==========================================
+
+/**
+ * Ensures the owner account exists in Firestore.
+ * Called once on app startup. If the owner doesn't exist, it creates one.
+ */
+export const ensureOwnerAccount = async () => {
+  try {
+    const ownerDoc = await getDoc(doc(db, 'app_users', 'hero_owner'));
+    if (!ownerDoc.exists()) {
+      const hashedPass = await hashPassword('Abdo@115');
+      await setDoc(doc(db, 'app_users', 'hero_owner'), {
+        id: 'hero_owner',
+        name: 'Hero Admin',
+        username: 'hero',
+        password: hashedPass,
+        mfaCode: '159753',
+        role: 'owner',
+        createdAt: new Date().toISOString()
+      });
+      console.log('[Firebase] Owner account seeded successfully');
+    }
+  } catch (error) {
+    console.error('ensureOwnerAccount Error:', error);
   }
 };
 
