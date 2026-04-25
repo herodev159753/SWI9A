@@ -9,6 +9,7 @@ import { registerUser, listenToOrders, assignOrderDriverAsync, updateOrderStatus
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ProductTimer from '../components/ProductTimer';
+import { formatTimeAgo, formatDuration } from '../utils/timeUtils';
 
 const AdminDashboardScreen = () => {
   const { t, i18n } = useTranslation();
@@ -654,8 +655,16 @@ const AdminDashboardScreen = () => {
         <View key={order.id} style={styles.orderCard}>
           <View style={[styles.orderHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <Text style={styles.orderId}>{t('order_id')} #{order.id}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: order.status === 'Pending' ? '#FFE0B2' : '#E8F5E9' }]}>
-              <Text style={{ fontSize: 10, color: order.status === 'Pending' ? '#F57C00' : '#2E7D32' }}>{order.status}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+              <Text style={{ fontSize: 11, color: COLORS.textGray, fontStyle: 'italic' }}>
+                {order.status === 'Pending' 
+                  ? `⏳ ${formatTimeAgo(order.timestamp, t)}` 
+                  : (order.status === 'Out for Delivery' ? `🛵 ${formatTimeAgo(order.claimedAt || order.timestamp, t)}` : '')
+                }
+              </Text>
+              <View style={[styles.statusBadge, { backgroundColor: order.status === 'Pending' ? '#FFE0B2' : '#E8F5E9' }]}>
+                <Text style={{ fontSize: 10, color: order.status === 'Pending' ? '#F57C00' : '#2E7D32' }}>{order.status}</Text>
+              </View>
             </View>
           </View>
           <Text style={styles.customerName}>{order.customer}</Text>
@@ -842,6 +851,9 @@ const AdminDashboardScreen = () => {
               </Text>
               <Text style={[styles.archiveDetail, { textAlign: isRTL ? 'right' : 'left' }]}>
                 <Text style={{ fontWeight: 'bold' }}>{t('order_date')}: </Text>{order.timestamp ? new Date(order.timestamp).toLocaleDateString() : '—'}
+              </Text>
+              <Text style={[styles.archiveDetail, { textAlign: isRTL ? 'right' : 'left' }]}>
+                <Text style={{ fontWeight: 'bold' }}>⏱️ {t('duration') || 'Duration'}: </Text>{formatDuration(order.timestamp, order.completedAt, t)}
               </Text>
               <Text style={[styles.archiveDetail, { textAlign: isRTL ? 'right' : 'left' }]}>
                 <Text style={{ fontWeight: 'bold' }}>{t('order_total') || 'Total'}: </Text>{order.total || '—'} {t('currency') || 'MAD'}

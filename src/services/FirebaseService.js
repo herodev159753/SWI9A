@@ -120,14 +120,17 @@ export const assignOrderDriverAsync = async (orderId, driverName, driverId) => {
   await updateDoc(doc(db, 'orders', orderId), {
     driver: driverName,
     driverId: driverId,
-    status: 'Out for Delivery'
+    status: 'Out for Delivery',
+    claimedAt: new Date().toISOString()
   });
 };
 
 export const updateOrderStatusAsync = async (orderId, newStatus) => {
-  await updateDoc(doc(db, 'orders', orderId), {
-    status: newStatus
-  });
+  const updates = { status: newStatus };
+  if (newStatus === 'Completed') {
+    updates.completedAt = new Date().toISOString();
+  }
+  await updateDoc(doc(db, 'orders', orderId), updates);
 };
 
 // ==========================================

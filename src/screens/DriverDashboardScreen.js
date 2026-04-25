@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { changeLanguage } from '../services/i18n';
 import { listenToOrders, updateOrderStatusAsync } from '../services/FirebaseService';
 import { logAdminAction } from '../services/AuditService';
+import { formatTimeAgo, formatDuration } from '../utils/timeUtils';
 
 const DriverDashboardScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -120,8 +121,13 @@ const DriverDashboardScreen = ({ navigation }) => {
     <View key={order.id} style={styles.orderCard}>
       <View style={[styles.orderHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Text style={styles.orderId}>{t('order_id')} #{order.id?.slice(-6)}</Text>
-        <View style={[styles.badge, { backgroundColor: '#FFF3E0' }]}>
-          <Text style={{ color: '#E65100', fontSize: 11, fontWeight: '700' }}>{t('pending')}</Text>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+          <Text style={{ fontSize: 11, color: COLORS.textGray, fontStyle: 'italic' }}>
+            ⏳ {formatTimeAgo(order.timestamp, t)}
+          </Text>
+          <View style={[styles.badge, { backgroundColor: '#FFF3E0' }]}>
+            <Text style={{ color: '#E65100', fontSize: 11, fontWeight: '700' }}>{t('pending')}</Text>
+          </View>
         </View>
       </View>
       <Text style={[styles.customerText, { textAlign: isRTL ? 'right' : 'left' }]}>
@@ -156,8 +162,13 @@ const DriverDashboardScreen = ({ navigation }) => {
     <View key={order.id} style={[styles.orderCard, { borderLeftColor: '#FF9800', borderLeftWidth: 4 }]}>
       <View style={[styles.orderHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Text style={styles.orderId}>{t('order_id')} #{order.id?.slice(-6)}</Text>
-        <View style={[styles.badge, { backgroundColor: '#E8F5E9' }]}>
-          <Text style={{ color: '#2E7D32', fontSize: 11, fontWeight: '700' }}>🚚 {t('out_for_delivery')}</Text>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+          <Text style={{ fontSize: 11, color: COLORS.textGray, fontStyle: 'italic' }}>
+            🛵 {formatTimeAgo(order.claimedAt || order.timestamp, t)}
+          </Text>
+          <View style={[styles.badge, { backgroundColor: '#E8F5E9' }]}>
+            <Text style={{ color: '#2E7D32', fontSize: 11, fontWeight: '700' }}>🚚 {t('out_for_delivery')}</Text>
+          </View>
         </View>
       </View>
       <Text style={[styles.customerText, { textAlign: isRTL ? 'right' : 'left' }]}>
@@ -212,10 +223,17 @@ const DriverDashboardScreen = ({ navigation }) => {
     <View key={order.id} style={[styles.orderCard, { borderLeftColor: order.status === 'Completed' ? '#4CAF50' : '#F44336', borderLeftWidth: 4, opacity: 0.85 }]}>
       <View style={[styles.orderHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <Text style={styles.orderId}>{t('order_id')} #{order.id?.slice(-6)}</Text>
-        <View style={[styles.badge, { backgroundColor: order.status === 'Completed' ? '#E8F5E9' : '#FFEBEE' }]}>
-          <Text style={{ color: order.status === 'Completed' ? '#2E7D32' : '#C62828', fontSize: 11, fontWeight: '700' }}>
-            {order.status === 'Completed' ? `✅ ${t('delivered')}` : `↩ ${t('returned')}`}
-          </Text>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+          {order.status === 'Completed' && (
+            <Text style={{ fontSize: 11, color: COLORS.textGray, fontStyle: 'italic' }}>
+              ⏱️ {formatDuration(order.timestamp, order.completedAt, t)}
+            </Text>
+          )}
+          <View style={[styles.badge, { backgroundColor: order.status === 'Completed' ? '#E8F5E9' : '#FFEBEE' }]}>
+            <Text style={{ color: order.status === 'Completed' ? '#2E7D32' : '#C62828', fontSize: 11, fontWeight: '700' }}>
+              {order.status === 'Completed' ? `✅ ${t('delivered')}` : `↩ ${t('returned')}`}
+            </Text>
+          </View>
         </View>
       </View>
       <Text style={[styles.customerText, { textAlign: isRTL ? 'right' : 'left' }]}>
