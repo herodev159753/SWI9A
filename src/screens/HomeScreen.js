@@ -117,6 +117,10 @@ const HomeScreen = ({ navigation }) => {
       await saveSecurely('cartItems', JSON.stringify(cart));
       await saveSecurely('cartTimestamp', Date.now().toString());
       setCartCount(cart.reduce((sum, i) => sum + i.quantity, 0));
+      
+      if (Platform.OS !== 'web') {
+        Alert.alert(t('success') || 'Success', t('added_to_cart') || 'Added to Cart');
+      }
     } catch (e) {
       console.error("Add to cart error:", e);
       // Fallback increment for UI immediate feedback
@@ -253,7 +257,8 @@ const HomeScreen = ({ navigation }) => {
     : { style: styles.masterContainer, contentContainerStyle: styles.scrollContent, showsVerticalScrollIndicator: false, bounces: true };
 
   return (
-    <Container {...containerProps}>
+    <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
+      <Container {...containerProps}>
       <View style={isWeb ? { flex: 0 } : { flex: 1 }}>
         <Helmet>
           <title>{t('brand_name')} - {t('welcome')}</title>
@@ -414,6 +419,18 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </Container>
+    {cartCount > 0 && (
+      <TouchableOpacity 
+        style={[styles.fab, isRTL ? { left: 20 } : { right: 20 }]} 
+        onPress={() => navigation.navigate('Cart')}
+      >
+        <MaterialCommunityIcons name="cart-outline" size={28} color={COLORS.white} />
+        <View style={styles.fabBadge}>
+          <Text style={styles.fabBadgeText}>{cartCount}</Text>
+        </View>
+      </TouchableOpacity>
+    )}
+    </View>
   );
 };
 
@@ -494,7 +511,12 @@ const styles = StyleSheet.create({
   itemTimer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.danger, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWeight: 1, borderColor: '#FFF' },
   itemTimerText: { color: '#FFF', fontSize: 12, fontWeight: '900', marginLeft: 4 },
   cardTimerOverlay: { position: 'absolute', top: 10, zIndex: 12 },
-  timerExpired: { fontSize: 10, color: COLORS.danger, fontWeight: 'bold' }
+  timerExpired: { fontSize: 10, color: COLORS.danger, fontWeight: 'bold' },
+  
+  // FAB
+  fab: { position: 'absolute', bottom: 30, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, zIndex: 100 },
+  fabBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: COLORS.danger, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.white },
+  fabBadgeText: { color: COLORS.white, fontSize: 12, fontWeight: 'bold' }
 });
 
 export default HomeScreen;

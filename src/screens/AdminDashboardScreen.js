@@ -659,7 +659,24 @@ const AdminDashboardScreen = () => {
             </View>
           </View>
           <Text style={styles.customerName}>{order.customer}</Text>
-          {role === 'owner' && <Text style={styles.driverName}>{t('driver')}: {order.driver}</Text>}
+          <Text style={{fontSize: 12, color: COLORS.textGray, marginBottom: 4}}>{t('phone')}: {order.phone}</Text>
+          <Text style={{fontSize: 12, color: COLORS.textGray, marginBottom: 8}}>{t('address')}: {order.address}</Text>
+          {role === 'owner' && <Text style={styles.driverName}>{t('driver')}: {order.driver || '—'}</Text>}
+          
+          {order.items && order.items.length > 0 && (
+            <View style={{ backgroundColor: '#F8F9FA', padding: 8, borderRadius: 8, marginBottom: 10 }}>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 5 }}>{t('order_items')}:</Text>
+              {order.items.map((item, idx) => (
+                <Text key={idx} style={{ fontSize: 12, color: '#333', marginBottom: 2 }}>
+                  • {item.name ? t(item.name) : 'Item'} × {item.quantity || 1} — {item.price || ''}
+                </Text>
+              ))}
+              <Text style={{ fontSize: 13, fontWeight: 'bold', marginTop: 5, color: COLORS.primary }}>
+                {t('total')}: {order.total} MAD
+              </Text>
+            </View>
+          )}
+
           <View style={styles.orderActions}>
             <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng)}>
               <MaterialCommunityIcons name="google-maps" size={18} color={COLORS.white} />

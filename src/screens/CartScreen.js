@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 
 import { getSecurely, saveSecurely } from '../services/StorageService';
+import { createOrderAsync } from '../services/FirebaseService';
 
 const CartScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -123,7 +124,7 @@ const CartScreen = ({ navigation }) => {
     return Object.keys(errorDetails).length === 0;
   };
 
-  const handleOrderSubmission = (method) => {
+  const handleOrderSubmission = async (method) => {
     if (!prepareOrderData()) return;
 
     if (honeypot) {
@@ -131,33 +132,65 @@ const CartScreen = ({ navigation }) => {
       return;
     }
 
-    let message = `🛒 *${t('order_summary')}*\n`;
-    message += `━━━━━━━━━━━━━━━\n`;
-    cartItems.forEach((item, i) => {
-      const parsedPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
-      message += `${i + 1}. ${t(item.name)} x${item.quantity} = ${parsedPrice * item.quantity} MAD\n`;
-    });
-    message += `━━━━━━━━━━━━━━━\n`;
-    if (shippingFee > 0) {
-      message += `🚚 *${t('shipping')}:* ${shippingFee} MAD\n`;
-    } else {
-      message += `🚚 *${t('shipping')}:* ${t('free_shipping')}\n`;
-    }
-    message += `💰 *${t('total')}:* ${total} MAD\n\n`;
-    message += `👤 *${t('your_info')}*\n`;
-    message += `📛 ${t('buyer_name')}: ${buyerName}\n`;
-    message += `📍 ${t('buyer_address')}: ${buyerAddress}\n`;
-    message += `📞 ${t('buyer_phone')}: ${buyerPhone}\n\n`;
-    message += `💳 *${t('payment_method')}:* ${paymentMethod === 'cash' ? t('cash_on_delivery') : t('online_payment')}\n`;
+    try {
+      // 1. Create Order Object for Firestore
+      const orderData = {
+        customer: buyerName,
+        address: buyerAddress,
+        phone: buyerPhone,
+        paymentMethod: paymentMethod,
+        items: cartItems.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price, numericPrice: i.numericPrice })),
+        total: total,
+        status: 'Pending',
+        source: method
+      };
 
-    const encoded = encodeURIComponent(message);
-    if (method === 'whatsapp') {
-      Linking.openURL(`https://wa.me/212654298825?text=${encoded}`).catch(() => {
-        // Fallback if WA is not installed
-        Linking.openURL(`mailto:admin@swi9a.com?subject=New Order&body=${encoded}`);
+      // 2. Save to Firestore
+      await createOrderAsync(orderData);
+
+      // 3. Clear Cart locally
+      await saveSecurely('cartItems', JSON.stringify([]));
+      setCartItems([]);
+
+      // 4. Build message for WhatsApp/Email
+      let message = `🛒 *${t('order_summary')}*\n`;
+      message += `━━━━━━━━━━━━━━━\n`;
+      cartItems.forEach((item, i) => {
+        const parsedPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
+        message += `${i + 1}. ${t(item.name)} x${item.quantity} = ${parsedPrice * item.quantity} MAD\n`;
       });
-    } else {
-      Linking.openURL(`mailto:admin@swi9a.com?subject=New Order&body=${encoded}`);
+      message += `━━━━━━━━━━━━━━━\n`;
+      if (shippingFee > 0) {
+        message += `🚚 *${t('shipping')}:* ${shippingFee} MAD\n`;
+      } else {
+        message += `🚚 *${t('shipping')}:* ${t('free_shipping')}\n`;
+      }
+      message += `💰 *${t('total')}:* ${total} MAD\n\n`;
+      message += `👤 *${t('your_info')}*\n`;
+      message += `📛 ${t('buyer_name')}: ${buyerName}\n`;
+      message += `📍 ${t('buyer_address')}: ${buyerAddress}\n`;
+      message += `📞 ${t('buyer_phone')}: ${buyerPhone}\n\n`;
+      message += `💳 *${t('payment_method')}:* ${paymentMethod === 'cash' ? t('cash_on_delivery') : t('online_payment')}\n`;
+
+      const encoded = encodeURIComponent(message);
+      
+      // 5. Open Communication App
+      if (method === 'whatsapp') {
+        try {
+          await Linking.openURL(`https://wa.me/212654298825?text=${encoded}`);
+        } catch (e) {
+          Alert.alert(t('success'), t('order_saved_whatsapp_failed') || 'Order saved! We will contact you soon. (WhatsApp could not be opened)');
+        }
+      } else {
+        try {
+          await Linking.openURL(`mailto:admin@swi9a.com?subject=New Order&body=${encoded}`);
+        } catch (e) {
+          Alert.alert(t('success'), t('order_saved_whatsapp_failed') || 'Order saved! We will contact you soon.');
+        }
+      }
+    } catch (error) {
+      console.error("Order submission error:", error);
+      Alert.alert(t('error'), t('order_submission_failed') || 'Failed to submit order. Please try again.');
     }
   };
 

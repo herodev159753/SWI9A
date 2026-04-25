@@ -98,6 +98,16 @@ export const deleteInventoryItemAsync = async (itemId) => {
   await deleteDoc(doc(db, 'inventory', itemId));
 };
 
+export const createOrderAsync = async (orderData) => {
+  const orderId = `ord_${Date.now()}`;
+  await setDoc(doc(db, 'orders', orderId), {
+    ...orderData,
+    id: orderId,
+    timestamp: new Date().toISOString()
+  });
+  return orderId;
+};
+
 export const listenToOrders = (callback) => {
   const q = collection(db, 'orders');
   return onSnapshot(q, (snapshot) => {

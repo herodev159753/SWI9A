@@ -146,6 +146,15 @@ const DriverDashboardScreen = ({ navigation }) => {
       <Text style={[styles.itemsText, { textAlign: isRTL ? 'right' : 'left' }]}>
         📦 {(order.items || []).length} {t('items_count')}
       </Text>
+      {order.items && order.items.length > 0 && (
+        <View style={{ backgroundColor: '#F8F9FA', padding: 8, borderRadius: 8, marginBottom: 10 }}>
+          {order.items.map((item, idx) => (
+            <Text key={idx} style={{ fontSize: 11, color: '#333', marginBottom: 2 }}>
+              • {item.name ? t(item.name) : 'Item'} × {item.quantity || 1}
+            </Text>
+          ))}
+        </View>
+      )}
       <View style={[styles.cardActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng)}>
           <MaterialCommunityIcons name="google-maps" size={16} color="#FFF" />
@@ -173,6 +182,15 @@ const DriverDashboardScreen = ({ navigation }) => {
       <Text style={[styles.itemsText, { textAlign: isRTL ? 'right' : 'left' }]}>
         📦 {(order.items || []).length} {t('items_count')} — {order.total || ''}
       </Text>
+      {order.items && order.items.length > 0 && (
+        <View style={{ backgroundColor: '#F8F9FA', padding: 8, borderRadius: 8, marginBottom: 10 }}>
+          {order.items.map((item, idx) => (
+            <Text key={idx} style={{ fontSize: 11, color: '#333', marginBottom: 2 }}>
+              • {item.name ? t(item.name) : 'Item'} × {item.quantity || 1}
+            </Text>
+          ))}
+        </View>
+      )}
 
       <View style={[styles.cardActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }, isMobile && { flexDirection: 'column', alignItems: 'stretch' }]}>
         <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng)}>
