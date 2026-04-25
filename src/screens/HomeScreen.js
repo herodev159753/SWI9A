@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   timerExpired: { fontSize: 10, color: COLORS.danger, fontWeight: 'bold' },
   
   // FAB
-  fab: { position: 'absolute', bottom: 30, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, zIndex: 100 },
+  fab: { position: Platform.OS === 'web' ? 'fixed' : 'absolute', bottom: 30, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, zIndex: 100 },
   fabBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: COLORS.danger, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.white },
   fabBadgeText: { color: COLORS.white, fontSize: 12, fontWeight: 'bold' }
 });
