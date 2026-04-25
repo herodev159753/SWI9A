@@ -3,14 +3,14 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
 import { sanitizeInput } from '../utils/validation';
 
-// Firebase configuration (Placeholder)
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBiLbw2dQ0oGxPYoY7z4Vpr8g3E79JGlKc",
+  authDomain: "swi9a-a6dfe.firebaseapp.com",
+  projectId: "swi9a-a6dfe",
+  storageBucket: "swi9a-a6dfe.firebasestorage.app",
+  messagingSenderId: "514763332291",
+  appId: "1:514763332291:web:4facbac8ea6ec79ee26076"
 };
 
 // Initialize Firebase
@@ -250,8 +250,8 @@ export const getAppUserByUsername = async (username) => {
     const q = query(collection(db, 'app_users'), where('username', '==', username.toLowerCase()));
     const snapshot = await getDocs(q);
     if (snapshot.empty) return null;
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() };
+    const docSnap = snapshot.docs[0];
+    return { id: docSnap.id, ...docSnap.data() };
   } catch (error) {
     console.error('getAppUserByUsername Error:', error);
     return null;
