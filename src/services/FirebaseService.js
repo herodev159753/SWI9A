@@ -462,8 +462,22 @@ export const ensureOwnerAccount = async () => {
       });
       console.log('[Firebase] Owner account seeded successfully');
     }
+
+    // Also seed categories if empty
+    const catSnap = await getDocs(collection(db, 'categories'));
+    if (catSnap.empty) {
+      console.log('[Firebase] Categories empty, seeding defaults...');
+      await Promise.all(DEFAULT_CATEGORIES.map(cat => setDoc(doc(db, 'categories', cat.id), cat)));
+    }
+
+    // Also seed inventory if empty
+    const invSnap = await getDocs(collection(db, 'inventory'));
+    if (invSnap.empty) {
+      console.log('[Firebase] Inventory empty, seeding defaults...');
+      await Promise.all(DEFAULT_INVENTORY.map(item => setDoc(doc(db, 'inventory', item.id), item)));
+    }
   } catch (error) {
-    console.error('ensureOwnerAccount Error:', error);
+    console.error('ensureOwnerAccount/Seeding Error:', error);
   }
 };
 
