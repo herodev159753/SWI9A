@@ -82,18 +82,52 @@ export const UI_TRANSLATIONS = {
 };
 
 const DEFAULT_INVENTORY = [
+  // 1. Vegetables (ID: 1)
   { id: 'inv_1', name: 'fresh_tomatoes', names: { ar: 'طماطم طازجة', fr: 'Tomates Fraîches', en: 'Fresh Tomatoes' }, price: '12 MAD', oldPrice: '15 MAD', discount: '20% OFF', category: '1', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', vendor: 'Farmer Ahmed', stock: 50, unit: 'kg', saleEndsAt: Date.now() + 3600000 },
   { id: 'inv_2', name: 'organic_carrots', names: { ar: 'جزر عضوي', fr: 'Carottes Bio', en: 'Organic Carrots' }, price: '8 MAD', oldPrice: '10 MAD', discount: '20% OFF', category: '1', image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400', vendor: 'Local Farm', stock: 30, unit: 'kg' },
-  { id: 'inv_3', name: 'sweet_oranges', names: { ar: 'برتقال حلو', fr: 'Oranges Sucrées', en: 'Sweet Oranges' }, price: '6 MAD', oldPrice: '8 MAD', discount: '25% OFF', category: '2', image: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=400', vendor: 'Atlas Orchard', stock: 100, unit: 'kg', saleEndsAt: Date.now() + 7200000 },
-  { id: 'inv_4', name: 'traditional_djellaba', names: { ar: 'جلابة تقليدية', fr: 'Djellaba Traditionnelle', en: 'Traditional Djellaba' }, price: '350 MAD', oldPrice: '450 MAD', discount: '100 MAD OFF', category: '3', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400', vendor: 'Craftsman Omar', stock: 10, unit: 'piece' },
-  { id: 'inv_5', name: 'olive_oil_extra', names: { ar: 'زيت زيتون بكر', fr: 'Huile d\'Olive Extra', en: 'Extra Virgin Olive Oil' }, price: '85 MAD', oldPrice: '95 MAD', discount: '10 MAD OFF', category: '4', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400', vendor: 'Oued Souss', stock: 20, unit: 'litre' },
-  { id: 'inv_6', name: 'handmade_tagine', names: { ar: 'طاجين فخاري', fr: 'Tagine en Terre Cuite', en: 'Handmade Clay Tagine' }, price: '45 MAD', oldPrice: '60 MAD', discount: '25% OFF', category: '5', image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=400', vendor: 'Safi Pottery', stock: 15, unit: 'piece' },
-  { id: 'inv_7', name: 'fresh_cow_milk', names: { ar: 'حليب بقر طازج', fr: 'Lait de Vache Frais', en: 'Fresh Cow Milk' }, price: '7 MAD', oldPrice: '8 MAD', discount: '1 MAD OFF', category: '11', image: 'https://images.unsplash.com/photo-1550583724-125581fe2f8a?w=400', vendor: 'Village Coop', stock: 25, unit: 'litre' },
-  { id: 'inv_8', name: 'bio_honey', names: { ar: 'عسل حر بكر', fr: 'Miel Pur Bio', en: 'Pure Bio Honey' }, price: '120 MAD', oldPrice: '150 MAD', discount: '30 MAD OFF', category: '8', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400', vendor: 'Mountain Apiary', stock: 12, unit: 'piece' },
-  { id: 'inv_9', name: 'organic_potatoes', names: { ar: 'بطاطس طبيعية', fr: 'Pommes de Terre Bio', en: 'Organic Potatoes' }, price: '5 MAD', oldPrice: '7 MAD', discount: '2 MAD OFF', category: '1', image: 'https://images.unsplash.com/photo-1518977676601-b53f02ac6d31?w=400', vendor: 'Farmer Ahmed', stock: 80, unit: 'kg' },
-  { id: 'inv_10', name: 'berber_carpet_mini', names: { ar: 'زربية أمازيغية صغيرة', fr: 'Mini Tapis Berbère', en: 'Small Berber Carpet' }, price: '250 MAD', oldPrice: '300 MAD', discount: '50 MAD OFF', category: '5', image: 'https://images.unsplash.com/photo-1600166898405-da9535204843?w=400', vendor: 'Women Coop', stock: 5, unit: 'piece' },
-  { id: 'inv_11', name: 'natural_lipstick', names: { ar: 'أحمر شفاه طبيعي', fr: 'Rouge à Lèvres Naturel', en: 'Natural Lipstick' }, price: '40 MAD', oldPrice: '55 MAD', discount: '15 MAD OFF', category: '6', image: 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400', vendor: 'Bio Beauty', stock: 20, unit: 'piece' },
-  { id: 'inv_12', name: 'traditional_soap', names: { ar: 'صابون بلدي أصيل', fr: 'Savon Noir Traditionnel', en: 'Traditional Black Soap' }, price: '15 MAD', oldPrice: '20 MAD', discount: '5 MAD OFF', category: '7', image: 'https://images.unsplash.com/photo-1607006344380-b6775a0824a7?w=400', vendor: 'Local Craft', stock: 50, unit: 'piece' },
+  { id: 'inv_3', name: 'onions_bag', names: { ar: 'بصل أحمر', fr: 'Oignons Rouges', en: 'Red Onions' }, price: '6 MAD', oldPrice: '8 MAD', discount: '2 MAD OFF', category: '1', image: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400', vendor: 'Farmer Ahmed', stock: 100, unit: 'kg' },
+  { id: 'inv_4', name: 'green_peppers', names: { ar: 'فلفل أخضر', fr: 'Poivrons Verts', en: 'Green Peppers' }, price: '10 MAD', oldPrice: '12 MAD', discount: '15% OFF', category: '1', image: 'https://images.unsplash.com/photo-1563565312879-8a7b0277239c?w=400', vendor: 'Souss Farm', stock: 45, unit: 'kg' },
+
+  // 2. Fruits (ID: 2)
+  { id: 'inv_5', name: 'sweet_oranges', names: { ar: 'برتقال حلو', fr: 'Oranges Sucrées', en: 'Sweet Oranges' }, price: '7 MAD', oldPrice: '10 MAD', discount: '30% OFF', category: '2', image: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=400', vendor: 'Atlas Orchard', stock: 100, unit: 'kg', saleEndsAt: Date.now() + 7200000 },
+  { id: 'inv_6', name: 'red_apples', names: { ar: 'تفاح أحمر', fr: 'Pommes Rouges', en: 'Red Apples' }, price: '14 MAD', oldPrice: '18 MAD', discount: '20% OFF', category: '2', image: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6bcd6?w=400', vendor: 'Imouzzer Farm', stock: 60, unit: 'kg' },
+  { id: 'inv_7', name: 'bananas_local', names: { ar: 'موز محلي', fr: 'Bananes Locales', en: 'Local Bananas' }, price: '11 MAD', oldPrice: '13 MAD', discount: '15% OFF', category: '2', image: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=400', vendor: 'Tamri Farm', stock: 80, unit: 'kg' },
+
+  // 3. Clothing (ID: 3)
+  { id: 'inv_8', name: 'traditional_djellaba', names: { ar: 'جلابة تقليدية', fr: 'Djellaba Traditionnelle', en: 'Traditional Djellaba' }, price: '350 MAD', oldPrice: '450 MAD', discount: '100 MAD OFF', category: '3', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400', vendor: 'Craftsman Omar', stock: 10, unit: 'piece' },
+  { id: 'inv_9', name: 'linen_shirt', names: { ar: 'قميص كتان', fr: 'Chemise en Lin', en: 'Linen Shirt' }, price: '180 MAD', oldPrice: '220 MAD', discount: '40 MAD OFF', category: '3', image: 'https://images.unsplash.com/photo-1598033129183-c4f50c717658?w=400', vendor: 'Fes Textiles', stock: 15, unit: 'piece' },
+
+  // 4. Groceries (ID: 4)
+  { id: 'inv_10', name: 'olive_oil_extra', names: { ar: 'زيت زيتون بكر', fr: 'Huile d\'Olive Extra', en: 'Extra Virgin Olive Oil' }, price: '85 MAD', oldPrice: '95 MAD', discount: '10 MAD OFF', category: '4', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400', vendor: 'Oued Souss', stock: 20, unit: 'litre' },
+  { id: 'inv_11', name: 'green_tea_box', names: { ar: 'شاي أخضر أصيل', fr: 'Thé Vert Authentique', en: 'Authentic Green Tea' }, price: '25 MAD', oldPrice: '30 MAD', discount: '5 MAD OFF', category: '4', image: 'https://images.unsplash.com/photo-1563911191331-9f9bb05d1c5d?w=400', vendor: 'Atlas Tea', stock: 50, unit: 'piece' },
+
+  // 5. Local Crafts (ID: 5)
+  { id: 'inv_12', name: 'handmade_tagine', names: { ar: 'طاجين فخاري', fr: 'Tagine en Terre Cuite', en: 'Handmade Clay Tagine' }, price: '45 MAD', oldPrice: '60 MAD', discount: '25% OFF', category: '5', image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=400', vendor: 'Safi Pottery', stock: 15, unit: 'piece' },
+  { id: 'inv_13', name: 'leather_pouffe', names: { ar: 'بوف جلدي', fr: 'Pouf en Cuir', en: 'Leather Pouffe' }, price: '280 MAD', oldPrice: '350 MAD', discount: '70 MAD OFF', category: '5', image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=400', vendor: 'Marrakech Tannery', stock: 8, unit: 'piece' },
+
+  // 6. Makeup (ID: 6)
+  { id: 'inv_14', name: 'natural_lipstick', names: { ar: 'أحمر شفاه طبيعي', fr: 'Rouge à Lèvres Naturel', en: 'Natural Lipstick' }, price: '40 MAD', oldPrice: '55 MAD', discount: '15 MAD OFF', category: '6', image: 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400', vendor: 'Bio Beauty', stock: 20, unit: 'piece' },
+  { id: 'inv_15', name: 'rose_water', names: { ar: 'ماء ورد مقطر', fr: 'Eau de Rose Distillée', en: 'Distilled Rose Water' }, price: '30 MAD', oldPrice: '45 MAD', discount: '15 MAD OFF', category: '6', image: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?w=400', vendor: 'Kelaa M\'gouna', stock: 35, unit: 'piece' },
+
+  // 7. Cleaning (ID: 7)
+  { id: 'inv_16', name: 'traditional_soap', names: { ar: 'صابون بلدي أصيل', fr: 'Savon Noir Traditionnel', en: 'Traditional Black Soap' }, price: '15 MAD', oldPrice: '20 MAD', discount: '5 MAD OFF', category: '7', image: 'https://images.unsplash.com/photo-1607006344380-b6775a0824a7?w=400', vendor: 'Local Craft', stock: 50, unit: 'piece' },
+  { id: 'inv_17', name: 'lemon_detergent', names: { ar: 'منظف بالليمون', fr: 'Détergent au Citron', en: 'Lemon Detergent' }, price: '22 MAD', oldPrice: '28 MAD', discount: '6 MAD OFF', category: '7', image: 'https://images.unsplash.com/photo-1584622781564-1d9876a13d00?w=400', vendor: 'EcoClean', stock: 40, unit: 'piece' },
+
+  // 8. Bio (ID: 8)
+  { id: 'inv_18', name: 'bio_honey', names: { ar: 'عسل حر بكر', fr: 'Miel Pur Bio', en: 'Pure Bio Honey' }, price: '120 MAD', oldPrice: '150 MAD', discount: '30 MAD OFF', category: '8', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400', vendor: 'Mountain Apiary', stock: 12, unit: 'piece' },
+  { id: 'inv_19', name: 'pure_argan_oil', names: { ar: 'زيت أركان للتجميل', fr: 'Huile d\'Argan Pure', en: 'Pure Argan Oil' }, price: '150 MAD', oldPrice: '180 MAD', discount: '30 MAD OFF', category: '8', image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400', vendor: 'Argan Coop', stock: 18, unit: 'piece' },
+
+  // 9. Home & DIY (ID: 9)
+  { id: 'inv_20', name: 'hand_drill', names: { ar: 'مثقاب يدوي', fr: 'Perceuse Manuelle', en: 'Hand Drill' }, price: '250 MAD', oldPrice: '320 MAD', discount: '70 MAD OFF', category: '9', image: 'https://images.unsplash.com/photo-1504148455328-497c5efbb1c6?w=400', vendor: 'Hardware Store', stock: 5, unit: 'piece' },
+  { id: 'inv_21', name: 'paint_set', names: { ar: 'طقم طلاء جدران', fr: 'Kit de Peinture', en: 'Wall Paint Set' }, price: '120 MAD', oldPrice: '150 MAD', discount: '30 MAD OFF', category: '9', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400', vendor: 'DIY Shop', stock: 12, unit: 'piece' },
+
+  // 10. Ready Food (ID: 10)
+  { id: 'inv_22', name: 'couscous_bowl', names: { ar: 'طبق كسكس جاهز', fr: 'Plat de Couscous', en: 'Couscous Plate' }, price: '45 MAD', oldPrice: '55 MAD', discount: '10 MAD OFF', category: '10', image: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=400', vendor: 'Village Kitchen', stock: 10, unit: 'piece' },
+  { id: 'inv_23', name: 'bastilla_chicken', names: { ar: 'بسطيلة دجاج', fr: 'Pastilla au Poulet', en: 'Chicken Pastilla' }, price: '60 MAD', oldPrice: '75 MAD', discount: '15 MAD OFF', category: '10', image: 'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=400', vendor: 'Village Kitchen', stock: 15, unit: 'piece' },
+
+  // 11. Dairy (ID: 11)
+  { id: 'inv_24', name: 'fresh_cow_milk', names: { ar: 'حليب بقر طازج', fr: 'Lait de Vache Frais', en: 'Fresh Cow Milk' }, price: '7 MAD', oldPrice: '9 MAD', discount: '2 MAD OFF', category: '11', image: 'https://images.unsplash.com/photo-1550583724-125581fe2f8a?w=400', vendor: 'Village Coop', stock: 25, unit: 'litre' },
+  { id: 'inv_25', name: 'goat_cheese', names: { ar: 'جبن ماعز بلدي', fr: 'Fromage de Chèvre', en: 'Local Goat Cheese' }, price: '35 MAD', oldPrice: '45 MAD', discount: '10 MAD OFF', category: '11', image: 'https://images.unsplash.com/photo-1485962391945-4200033b45c5?w=400', vendor: 'Mountain Farm', stock: 15, unit: 'piece' },
 ];
 
 export const listenToInventory = (callback) => {
