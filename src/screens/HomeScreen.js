@@ -243,7 +243,7 @@ const HomeScreen = ({ navigation }) => {
               <TouchableOpacity onPress={() => handleCategorySelect('all')}><Text style={styles.seeAll}>{t('see_all')}</Text></TouchableOpacity>
             </View>
             <Animated.View style={[styles.productsGrid, { flexDirection: isRTL ? 'row-reverse' : 'row', opacity: fadeAnimProducts }]}>
-              {featuredProduce.map((item) => (
+              {featuredProduce.length > 0 ? featuredProduce.map((item) => (
                 <View key={item.id} style={styles.productCard}>
                   {item.discount && item.discount !== '' && item.discount !== '0%' && (
                     <View style={[styles.discountBadge, isRTL ? { right: 10 } : { left: 10 }]}>
@@ -271,7 +271,12 @@ const HomeScreen = ({ navigation }) => {
                     </TouchableOpacity>
                   </View>
                 </View>
-              ))}
+              )) : (
+                <View style={{ width: '100%', alignItems: 'center', marginVertical: 40 }}>
+                  <MaterialCommunityIcons name="clock-outline" size={48} color={COLORS.textGray} />
+                  <Text style={{ color: COLORS.textGray, marginTop: 10, fontSize: 16, fontWeight: '600' }}>{t('coming_soon')}</Text>
+                </View>
+              )}
             </Animated.View>
           </View>
 

@@ -76,7 +76,10 @@ export const placeOrder = async (userId, cartItems, location) => {
   });
 };
 
-
+export const UI_TRANSLATIONS = {
+  "no_logs": "لا توجد سجلات حالياً",
+  "coming_soon": "سيتم إضافة منتجات قريباً..."
+};
 
 const DEFAULT_INVENTORY = [
   { id: 'inv_1', name: 'fresh_tomatoes', names: { ar: 'طماطم طازجة', fr: 'Tomates Fraîches', en: 'Fresh Tomatoes' }, price: '12 MAD', oldPrice: '15 MAD', discount: '20% OFF', category: '1', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', vendor: 'Farmer Ahmed', stock: 50, unit: 'kg', saleEndsAt: Date.now() + 3600000 },
@@ -86,6 +89,11 @@ const DEFAULT_INVENTORY = [
   { id: 'inv_5', name: 'olive_oil_extra', names: { ar: 'زيت زيتون بكر', fr: 'Huile d\'Olive Extra', en: 'Extra Virgin Olive Oil' }, price: '85 MAD', oldPrice: '95 MAD', discount: '10 MAD OFF', category: '4', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400', vendor: 'Oued Souss', stock: 20, unit: 'litre' },
   { id: 'inv_6', name: 'handmade_tagine', names: { ar: 'طاجين فخاري', fr: 'Tagine en Terre Cuite', en: 'Handmade Clay Tagine' }, price: '45 MAD', oldPrice: '60 MAD', discount: '25% OFF', category: '5', image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=400', vendor: 'Safi Pottery', stock: 15, unit: 'piece' },
   { id: 'inv_7', name: 'fresh_cow_milk', names: { ar: 'حليب بقر طازج', fr: 'Lait de Vache Frais', en: 'Fresh Cow Milk' }, price: '7 MAD', oldPrice: '8 MAD', discount: '1 MAD OFF', category: '11', image: 'https://images.unsplash.com/photo-1550583724-125581fe2f8a?w=400', vendor: 'Village Coop', stock: 25, unit: 'litre' },
+  { id: 'inv_8', name: 'bio_honey', names: { ar: 'عسل حر بكر', fr: 'Miel Pur Bio', en: 'Pure Bio Honey' }, price: '120 MAD', oldPrice: '150 MAD', discount: '30 MAD OFF', category: '8', image: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400', vendor: 'Mountain Apiary', stock: 12, unit: 'piece' },
+  { id: 'inv_9', name: 'organic_potatoes', names: { ar: 'بطاطس طبيعية', fr: 'Pommes de Terre Bio', en: 'Organic Potatoes' }, price: '5 MAD', oldPrice: '7 MAD', discount: '2 MAD OFF', category: '1', image: 'https://images.unsplash.com/photo-1518977676601-b53f02ac6d31?w=400', vendor: 'Farmer Ahmed', stock: 80, unit: 'kg' },
+  { id: 'inv_10', name: 'berber_carpet_mini', names: { ar: 'زربية أمازيغية صغيرة', fr: 'Mini Tapis Berbère', en: 'Small Berber Carpet' }, price: '250 MAD', oldPrice: '300 MAD', discount: '50 MAD OFF', category: '5', image: 'https://images.unsplash.com/photo-1600166898405-da9535204843?w=400', vendor: 'Women Coop', stock: 5, unit: 'piece' },
+  { id: 'inv_11', name: 'natural_lipstick', names: { ar: 'أحمر شفاه طبيعي', fr: 'Rouge à Lèvres Naturel', en: 'Natural Lipstick' }, price: '40 MAD', oldPrice: '55 MAD', discount: '15 MAD OFF', category: '6', image: 'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=400', vendor: 'Bio Beauty', stock: 20, unit: 'piece' },
+  { id: 'inv_12', name: 'traditional_soap', names: { ar: 'صابون بلدي أصيل', fr: 'Savon Noir Traditionnel', en: 'Traditional Black Soap' }, price: '15 MAD', oldPrice: '20 MAD', discount: '5 MAD OFF', category: '7', image: 'https://images.unsplash.com/photo-1607006344380-b6775a0824a7?w=400', vendor: 'Local Craft', stock: 50, unit: 'piece' },
 ];
 
 export const listenToInventory = (callback) => {
