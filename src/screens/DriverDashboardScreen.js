@@ -112,9 +112,14 @@ const DriverDashboardScreen = ({ navigation }) => {
     await logout();
   };
 
-  const openGPS = (lat, lng) => {
-    if (!lat || !lng) return;
-    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+  const openGPS = (lat, lng, address) => {
+    if (lat && lng) {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+    } else if (address) {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
+    } else {
+      Alert.alert(t('error'), t('no_location') || 'No location provided');
+    }
   };
 
   const renderAvailableOrder = (order) => (
@@ -133,20 +138,30 @@ const DriverDashboardScreen = ({ navigation }) => {
       <Text style={[styles.customerText, { textAlign: isRTL ? 'right' : 'left' }]}>
         👤 {order.customer || t('customer')}
       </Text>
+      <Text style={{ textAlign: isRTL ? 'right' : 'left', marginBottom: 2, fontSize: 13, color: '#666' }}>
+        📍 {order.address || t('no_address')}
+      </Text>
+      {order.phone && (
+        <TouchableOpacity onPress={() => Linking.openURL(`tel:${order.phone}`)}>
+          <Text style={{ textAlign: isRTL ? 'right' : 'left', marginBottom: 6, fontSize: 13, color: COLORS.primary, fontWeight: 'bold' }}>
+            📞 {order.phone}
+          </Text>
+        </TouchableOpacity>
+      )}
       <Text style={[styles.itemsText, { textAlign: isRTL ? 'right' : 'left' }]}>
         📦 {(order.items || []).length} {t('items_count')}
       </Text>
       {order.items && order.items.length > 0 && (
         <View style={{ backgroundColor: '#F8F9FA', padding: 8, borderRadius: 8, marginBottom: 10 }}>
           {order.items.map((item, idx) => (
-            <Text key={idx} style={{ fontSize: 11, color: '#333', marginBottom: 2 }}>
-              • {item.name ? t(item.name) : 'Item'} × {item.quantity || 1}
+            <Text key={idx} style={{ fontSize: 12, color: '#333', marginBottom: 2, textAlign: isRTL ? 'right' : 'left' }}>
+              • {item.names?.[i18n.language] || (item.name ? t(item.name) : 'Item')} × {item.quantity || 1}
             </Text>
           ))}
         </View>
       )}
       <View style={[styles.cardActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
-        <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng)}>
+        <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng, order.address)}>
           <MaterialCommunityIcons name="google-maps" size={16} color="#FFF" />
           <Text style={styles.gpsBtnText}>{t('gps_view')}</Text>
         </TouchableOpacity>
@@ -174,21 +189,31 @@ const DriverDashboardScreen = ({ navigation }) => {
       <Text style={[styles.customerText, { textAlign: isRTL ? 'right' : 'left' }]}>
         👤 {order.customer || t('customer')}
       </Text>
+      <Text style={{ textAlign: isRTL ? 'right' : 'left', marginBottom: 2, fontSize: 13, color: '#666' }}>
+        📍 {order.address || t('no_address')}
+      </Text>
+      {order.phone && (
+        <TouchableOpacity onPress={() => Linking.openURL(`tel:${order.phone}`)}>
+          <Text style={{ textAlign: isRTL ? 'right' : 'left', marginBottom: 6, fontSize: 13, color: COLORS.primary, fontWeight: 'bold' }}>
+            📞 {order.phone}
+          </Text>
+        </TouchableOpacity>
+      )}
       <Text style={[styles.itemsText, { textAlign: isRTL ? 'right' : 'left' }]}>
         📦 {(order.items || []).length} {t('items_count')} — {order.total || ''}
       </Text>
       {order.items && order.items.length > 0 && (
         <View style={{ backgroundColor: '#F8F9FA', padding: 8, borderRadius: 8, marginBottom: 10 }}>
           {order.items.map((item, idx) => (
-            <Text key={idx} style={{ fontSize: 11, color: '#333', marginBottom: 2 }}>
-              • {item.name ? t(item.name) : 'Item'} × {item.quantity || 1}
+            <Text key={idx} style={{ fontSize: 12, color: '#333', marginBottom: 2, textAlign: isRTL ? 'right' : 'left' }}>
+              • {item.names?.[i18n.language] || (item.name ? t(item.name) : 'Item')} × {item.quantity || 1}
             </Text>
           ))}
         </View>
       )}
 
       <View style={[styles.cardActions, { flexDirection: isRTL ? 'row-reverse' : 'row' }, isMobile && { flexDirection: 'column', alignItems: 'stretch' }]}>
-        <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng)}>
+        <TouchableOpacity style={styles.gpsBtn} onPress={() => openGPS(order.location?.lat, order.location?.lng, order.address)}>
           <MaterialCommunityIcons name="google-maps" size={16} color="#FFF" />
           <Text style={styles.gpsBtnText}>{t('gps_view')}</Text>
         </TouchableOpacity>

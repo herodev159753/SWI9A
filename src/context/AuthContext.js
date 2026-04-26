@@ -11,6 +11,7 @@ const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [userToken, setUserToken] = useState(null);
   const [userName, setUserName] = useState(null);
   const [isMfaVerified, setIsMfaVerified] = useState(false);
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(false);
       setUserRole(null);
+      setUserId(null);
       setUserToken(null);
       setUserName(null);
       setIsMfaVerified(false);
@@ -110,6 +112,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = await getSecurely('userToken');
       const role = await getSecurely('userRole');
+      const id = await getSecurely('userId');
       const name = await getSecurely('userName');
       
       if (token) {
@@ -134,6 +137,7 @@ export const AuthProvider = ({ children }) => {
         
         setIsAuthenticated(true);
         setUserRole(role);
+        setUserId(id);
         setUserToken(token);
         setUserName(name);
       }
@@ -161,6 +165,7 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(true);
       setUserRole(role);
+      setUserId(id);
       setUserToken(token);
       setUserName(name);
 
@@ -190,6 +195,7 @@ export const AuthProvider = ({ children }) => {
       
       setIsAuthenticated(false);
       setUserRole(null);
+      setUserId(null);
       setUserToken(null);
       setUserName(null);
       setIsMfaVerified(false);
@@ -208,7 +214,8 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{ 
       isAuthenticated, 
-      userRole, 
+      userRole,
+      userId,
       userToken, 
       userName, 
       isMfaVerified,

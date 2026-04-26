@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, updateDoc, query, where } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc, updateDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { sanitizeInput } from '../utils/validation';
 import bcrypt from 'bcryptjs';
 
@@ -76,13 +76,37 @@ export const placeOrder = async (userId, cartItems, location) => {
   });
 };
 
-import { onSnapshot } from 'firebase/firestore';
+
+
+const DEFAULT_INVENTORY = [
+  { id: 'inv_1', name: 'fresh_tomatoes', names: { ar: 'طماطم طازجة', fr: 'Tomates Fraîches', en: 'Fresh Tomatoes' }, price: '12 MAD', oldPrice: '15 MAD', discount: '20% OFF', category: '1', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', vendor: 'Farmer Ahmed', stock: 50, unit: 'kg', saleEndsAt: Date.now() + 3600000 },
+  { id: 'inv_2', name: 'organic_carrots', names: { ar: 'جزر عضوي', fr: 'Carottes Bio', en: 'Organic Carrots' }, price: '8 MAD', oldPrice: '10 MAD', discount: '20% OFF', category: '1', image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400', vendor: 'Local Farm', stock: 30, unit: 'kg' },
+  { id: 'inv_3', name: 'sweet_oranges', names: { ar: 'برتقال حلو', fr: 'Oranges Sucrées', en: 'Sweet Oranges' }, price: '6 MAD', oldPrice: '8 MAD', discount: '25% OFF', category: '2', image: 'https://images.unsplash.com/photo-1547514701-42782101795e?w=400', vendor: 'Atlas Orchard', stock: 100, unit: 'kg', saleEndsAt: Date.now() + 7200000 },
+  { id: 'inv_4', name: 'traditional_djellaba', names: { ar: 'جلابة تقليدية', fr: 'Djellaba Traditionnelle', en: 'Traditional Djellaba' }, price: '350 MAD', oldPrice: '450 MAD', discount: '100 MAD OFF', category: '3', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400', vendor: 'Craftsman Omar', stock: 10, unit: 'piece' },
+  { id: 'inv_5', name: 'olive_oil_extra', names: { ar: 'زيت زيتون بكر', fr: 'Huile d\'Olive Extra', en: 'Extra Virgin Olive Oil' }, price: '85 MAD', oldPrice: '95 MAD', discount: '10 MAD OFF', category: '4', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400', vendor: 'Oued Souss', stock: 20, unit: 'litre' },
+  { id: 'inv_6', name: 'handmade_tagine', names: { ar: 'طاجين فخاري', fr: 'Tagine en Terre Cuite', en: 'Handmade Clay Tagine' }, price: '45 MAD', oldPrice: '60 MAD', discount: '25% OFF', category: '5', image: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=400', vendor: 'Safi Pottery', stock: 15, unit: 'piece' },
+  { id: 'inv_7', name: 'fresh_cow_milk', names: { ar: 'حليب بقر طازج', fr: 'Lait de Vache Frais', en: 'Fresh Cow Milk' }, price: '7 MAD', oldPrice: '8 MAD', discount: '1 MAD OFF', category: '11', image: 'https://images.unsplash.com/photo-1550583724-125581fe2f8a?w=400', vendor: 'Village Coop', stock: 25, unit: 'litre' },
+];
 
 export const listenToInventory = (callback) => {
   const q = collection(db, 'inventory');
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(data);
+  return onSnapshot(q, async (snapshot) => {
+    if (snapshot.empty) {
+      console.log('[Firebase] Inventory empty, seeding defaults...');
+      try {
+        await Promise.all(DEFAULT_INVENTORY.map(item => setDoc(doc(db, 'inventory', item.id), item)));
+        callback(DEFAULT_INVENTORY);
+      } catch (err) {
+        console.error('[Firebase] Seeding inventory failed:', err);
+        callback([]);
+      }
+    } else {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(data);
+    }
+  }, (error) => {
+    console.error('[Firebase] listenToInventory error (likely permissions):', error);
+    callback([]);
   });
 };
 
@@ -92,6 +116,10 @@ export const addInventoryItemAsync = async (item) => {
     ...item,
     createdAt: new Date().toISOString()
   });
+};
+
+export const updateInventoryItemAsync = async (itemId, updates) => {
+  await updateDoc(doc(db, 'inventory', itemId), updates);
 };
 
 export const deleteInventoryItemAsync = async (itemId) => {
@@ -131,6 +159,83 @@ export const updateOrderStatusAsync = async (orderId, newStatus) => {
     updates.completedAt = new Date().toISOString();
   }
   await updateDoc(doc(db, 'orders', orderId), updates);
+};
+
+export const settleOrderAsync = async (orderId, commission, adminId, notes = '') => {
+  await updateDoc(doc(db, 'orders', orderId), {
+    settlementStatus: 'Settled',
+    driverCommission: commission,
+    settledAt: new Date().toISOString(),
+    settledBy: adminId,
+    settlementNotes: notes
+  });
+};
+
+export const settleMultipleOrdersAsync = async (orderIds, commissionPerOrder, adminId, notes = '') => {
+  const settledAt = new Date().toISOString();
+  const promises = orderIds.map(orderId => 
+    updateDoc(doc(db, 'orders', orderId), {
+      settlementStatus: 'Settled',
+      driverCommission: commissionPerOrder,
+      settledAt,
+      settledBy: adminId,
+      settlementNotes: notes
+    })
+  );
+  await Promise.all(promises);
+};
+
+// ==========================================
+// CATEGORIES MANAGEMENT (Firestore-backed)
+// ==========================================
+
+const DEFAULT_CATEGORIES = [
+  { id: '1', names: { ar: 'خضروات', fr: 'Légumes', en: 'Vegetables' }, icon: 'carrot', color: '#4CAF50', visible: true, order: 1 },
+  { id: '2', names: { ar: 'فواكه', fr: 'Fruits', en: 'Fruits' }, icon: 'food-apple', color: '#F44336', visible: true, order: 2 },
+  { id: '3', names: { ar: 'ملابس', fr: 'Vêtements', en: 'Clothing' }, icon: 'tshirt-crew', color: '#FF9800', visible: true, order: 3 },
+  { id: '4', names: { ar: 'بقالة', fr: 'Épicerie', en: 'Groceries' }, icon: 'basket', color: '#9C27B0', visible: true, order: 4 },
+  { id: '5', names: { ar: 'صناعة تقليدية', fr: 'Artisanat', en: 'Local Crafts' }, icon: 'palette', color: '#8E44AD', visible: true, order: 5 },
+  { id: '6', names: { ar: 'مستحضرات تجميل', fr: 'Maquillage', en: 'Makeup' }, icon: 'lipstick', color: '#E91E63', visible: true, order: 6 },
+  { id: '7', names: { ar: 'تنظيف', fr: 'Nettoyage', en: 'Cleaning' }, icon: 'spray', color: '#00ACC1', visible: true, order: 7 },
+  { id: '8', names: { ar: 'منتجات طبيعية', fr: 'Bio', en: 'Bio' }, icon: 'leaf', color: '#66BB6A', visible: true, order: 8 },
+  { id: '9', names: { ar: 'منزل وأعمال يدوية', fr: 'Maison & Bricolage', en: 'Home & DIY' }, icon: 'home-variant', color: '#8D6E63', visible: true, order: 9 },
+  { id: '10', names: { ar: 'أكل جاهز', fr: 'Plats Préparés', en: 'Ready Food' }, icon: 'food-variant', color: '#FF7043', visible: true, order: 10 },
+  { id: '11', names: { ar: 'ألبان', fr: 'Produits Laitiers', en: 'Dairy' }, icon: 'bottle-wine', color: '#2196F3', visible: true, order: 11 },
+];
+
+export const listenToCategories = (callback) => {
+  const q = collection(db, 'categories');
+  return onSnapshot(q, async (snapshot) => {
+    if (snapshot.empty) {
+      console.log('[Firebase] Categories collection empty, seeding defaults...');
+      try {
+        await Promise.all(DEFAULT_CATEGORIES.map(cat => setDoc(doc(db, 'categories', cat.id), cat)));
+        callback(DEFAULT_CATEGORIES);
+      } catch (err) {
+        console.error('[Firebase] Seeding categories failed (likely permissions):', err);
+        callback(DEFAULT_CATEGORIES);
+      }
+    } else {
+      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      data.sort((a, b) => (a.order || 0) - (b.order || 0));
+      callback(data);
+    }
+  }, (error) => {
+    console.error('[Firebase] listenToCategories error:', error);
+    callback(DEFAULT_CATEGORIES); // Fallback to defaults if permissions missing
+  });
+};
+
+export const saveCategory = async (categoryData) => {
+  await setDoc(doc(db, 'categories', categoryData.id), categoryData);
+};
+
+export const deleteCategory = async (categoryId) => {
+  await deleteDoc(doc(db, 'categories', categoryId));
+};
+
+export const toggleCategoryVisibility = async (categoryId, visible) => {
+  await updateDoc(doc(db, 'categories', categoryId), { visible });
 };
 
 // ==========================================

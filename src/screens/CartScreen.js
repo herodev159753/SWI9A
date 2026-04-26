@@ -139,7 +139,7 @@ const CartScreen = ({ navigation }) => {
         address: buyerAddress,
         phone: buyerPhone,
         paymentMethod: paymentMethod,
-        items: cartItems.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price, numericPrice: i.numericPrice })),
+        items: cartItems.map(i => ({ id: i.id, name: i.name, names: i.names || null, quantity: i.quantity, price: i.price, numericPrice: i.numericPrice })),
         total: total,
         status: 'Pending',
         source: method

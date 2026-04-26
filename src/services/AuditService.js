@@ -1,5 +1,5 @@
 import { db } from './FirebaseService';
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 /**
  * Service to log sensitive administrative actions for accountability.
@@ -24,4 +24,16 @@ export const logAdminAction = async (adminId, actionType, details) => {
     console.error("Audit Logging Failed:", error);
     return false;
   }
+};
+
+
+/**
+ * Listen to audit logs in real-time.
+ */
+export const listenToAuditLogs = (callback) => {
+  const q = query(collection(db, "audit_logs"), orderBy("timestamp", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(data);
+  });
 };
